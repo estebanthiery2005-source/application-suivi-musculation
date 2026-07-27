@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suivi Musculation Esteban</title>
+<style>
+  :root{
+    --bg:#0e0f12;
+    --panel:#17181d;
+    --panel2:#1e2027;
+    --border:#2a2c34;
+    --accent:#ff5d3a;
+    --accent2:#3aa1ff;
+    --text:#f2f2f0;
+    --muted:#9a9ba3;
+    --good:#4dd07b;
+    --warn:#ffb648;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:20px 16px 80px;}
+  header{margin-bottom:24px;}
+  header h1{
+    font-size:1.5rem;
+    margin:0 0 4px;
+    letter-spacing:-0.02em;
+  }
+  header p{color:var(--muted);margin:0;font-size:0.9rem;}
+
+  nav{
+    display:flex;
+    gap:6px;
+    margin:20px 0 24px;
+    background:var(--panel);
+    padding:6px;
+    border-radius:14px;
+    border:1px solid var(--border);
+    overflow-x:auto;
+  }
+  nav button{
+    flex:1;
+    white-space:nowrap;
+    background:transparent;
+    border:none;
+    color:var(--muted);
+    padding:10px 12px;
+    border-radius:10px;
+    font-size:0.85rem;
+    font-weight:600;
+    cursor:pointer;
+    transition:.15s;
+  }
+  nav button.active{
+    background:var(--accent);
+    color:#fff;
+  }
+
+  section{display:none;}
+  section.active{display:block;animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:18px;
+    margin-bottom:16px;
+  }
+  .card h2{
+    font-size:1.05rem;
+    margin:0 0 12px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .card h3{font-size:0.95rem;margin:16px 0 8px;color:var(--text);}
+  .muted{color:var(--muted);}
+  .small{font-size:0.8rem;}
+
+  .badge{
+    display:inline-block;
+    padding:3px 10px;
+    border-radius:999px;
+    font-size:0.75rem;
+    font-weight:700;
+  }
+  .badge.hyper{background:rgba(255,93,58,.15);color:var(--accent);}
+  .badge.force{background:rgba(58,161,255,.15);color:var(--accent2);}
+  .badge.endur{background:rgba(77,208,123,.15);color:var(--good);}
+  .badge.deload{background:rgba(255,182,72,.15);color:var(--warn);}
+
+  /* Calendrier */
+  .phase-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:12px;
+    border-radius:12px;
+    background:var(--panel2);
+    margin-bottom:8px;
+    border:1px solid transparent;
+  }
+  .phase-row.current{border-color:var(--accent);}
+  .phase-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+  .phase-info{flex:1;}
+  .phase-info .name{font-weight:700;font-size:0.92rem;}
+  .phase-info .dates{color:var(--muted);font-size:0.78rem;}
+  .phase-days{font-size:0.78rem;color:var(--muted);text-align:right;}
+
+  .progress-track{
+    height:8px;
+    background:var(--panel2);
+    border-radius:999px;
+    overflow:hidden;
+    margin:10px 0;
+  }
+  .progress-fill{
+    height:100%;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));
+    border-radius:999px;
+    transition:width .3s;
+  }
+
+  /* Weight tracker */
+  .weight-input-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  input[type=number], input[type=text], input[type=date], select, textarea{
+    background:var(--panel2);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:10px 12px;
+    border-radius:10px;
+    font-size:0.9rem;
+    font-family:inherit;
+  }
+  input[type=number]{width:110px;}
+  .btn{
+    background:var(--accent);
+    color:#fff;
+    border:none;
+    padding:10px 16px;
+    border-radius:10px;
+    font-weight:700;
+    font-size:0.85rem;
+    cursor:pointer;
+    transition:.15s;
+  }
+  .btn:hover{opacity:.9;}
+  .btn.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--border);}
+  .btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+
+  table{width:100%;border-collapse:collapse;font-size:0.85rem;}
+  th,td{padding:8px 6px;text-align:left;border-bottom:1px solid var(--border);}
+  th{color:var(--muted);font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:.03em;}
+  .num{text-align:right;}
+  .weight-empty{color:var(--muted);text-align:center;padding:20px 0;font-size:0.85rem;}
+  .del-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:2px 6px;}
+  .del-btn:hover{color:var(--accent);}
+
+  /* Macros */
+  .macro-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0;}
+  @media(min-width:520px){.macro-grid{grid-template-columns:repeat(4,1fr);}}
+  .macro-box{
+    background:var(--panel2);
+    border-radius:12px;
+    padding:12px;
+    text-align:center;
+  }
+  .macro-box .val{font-size:1.3rem;font-weight:800;}
+  .macro-box .lbl{font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-top:2px;}
+
+  .meal-block{
+    background:var(--panel2);
+    border-radius:12px;
+    padding:12px 14px;
+    margin-bottom:10px;
+  }
+  .meal-block .meal-title{font-weight:700;font-size:0.88rem;margin-bottom:6px;display:flex;justify-content:space-between;}
+  .meal-block ul{margin:0;padding-left:18px;font-size:0.83rem;color:var(--muted);}
+  .meal-block li{margin-bottom:3px;}
+  .meal-total{font-size:0.8rem;margin-top:8px;font-weight:600;color:var(--text);}
+
+  /* Recipe generator */
+  .form-grid{display:grid;gap:12px;}
+  label{font-size:0.8rem;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;}
+  .field{margin-bottom:4px;}
+  textarea{width:100%;min-height:60px;resize:vertical;}
+  select{width:100%;}
+
+  .recipe-output{
+    background:var(--panel2);
+    border-radius:12px;
+    padding:16px;
+    margin-top:14px;
+    white-space:pre-wrap;
+    font-size:0.88rem;
+    line-height:1.55;
+  }
+  .loading{
+    display:flex;align-items:center;gap:8px;color:var(--muted);font-size:0.85rem;padding:10px 0;
+  }
+  .spinner{
+    width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);
+    border-radius:50%;animation:spin .7s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .error-box{
+    background:rgba(255,93,58,.1);border:1px solid var(--accent);color:var(--accent);
+    padding:10px 12px;border-radius:10px;font-size:0.82rem;margin-top:10px;
+  }
+
+  footer{text-align:center;color:var(--muted);font-size:0.75rem;margin-top:30px;}
+
+  .chip-row{display:flex;flex-wrap:wrap;gap:6px;}
+  .chip{
+    background:var(--panel2);border:1px solid var(--border);color:var(--muted);
+    padding:6px 12px;border-radius:999px;font-size:0.78rem;cursor:pointer;
+  }
+  .chip.selected{background:var(--accent);color:#fff;border-color:var(--accent);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Suivi Musculation Esteban</h1>
+  </header>
+
+  <nav>
+    <button data-tab="cycle" class="active">Cycle</button>
+    <button data-tab="macros">Macros</button>
+    <button data-tab="recettes">Recettes</button>
+    <button data-tab="poids">Poids</button>
+  </nav>
+
+  <!-- ===================== CYCLE ===================== -->
+  <section id="tab-cycle" class="active">
+    <div class="card">
+      <h2>📅 Où j'en suis</h2>
+      <div id="current-phase-box"></div>
+      <div class="progress-track"><div class="progress-fill" id="cycle-progress"></div></div>
+      <div class="small muted" id="cycle-progress-label"></div>
+    </div>
+
+    <div class="card">
+      <h2>🗓️ Calendrier du cycle</h2>
+      <p class="small muted">Démarrage : demain. Modifie la date si besoin.</p>
+      <div class="weight-input-row">
+        <div>
+          <label>Date de départ (Hypertrophie)</label>
+          <input type="date" id="start-date">
+        </div>
+        <button class="btn secondary" id="recalc-btn">Recalculer</button>
+      </div>
+      <div id="phase-list"></div>
+    </div>
+  </section>
+
+  <!-- ===================== MACROS ===================== -->
+  <section id="tab-macros">
+    <div class="card">
+      <h2>🎯 Objectifs — <span id="palier-label"></span></h2>
+      <div class="chip-row" id="palier-selector"></div>
+      <div class="macro-grid" id="macro-targets"></div>
+      <p class="small muted" style="margin-top:10px">Kcal et protéines viennent de ton plan de séche. Glucides/lipides calculés (lipides ~27% des kcal pour préserver les hormones en déficit, le reste en glucides) — à ajuster si besoin, le suivi précis se fait sur Yazio.</p>
+    </div>
+  </section>
+
+  <!-- ===================== RECETTES ===================== -->
+  <section id="tab-recettes">
+    <div class="card">
+      <h2>🍳 Générateur de recettes</h2>
+      <p class="small muted">Envoie ton écran Yazio du jour, précise combien de kcal tu veux pour ce repas — l'IA lit ce qu'il te reste en protéines/glucides/lipides et te propose plusieurs recettes calibrées.</p>
+
+      <div class="form-grid">
+        <div class="field">
+          <label>Capture d'écran Yazio (reste de la journée)</label>
+          <input type="file" id="rec-yazio-img" accept="image/*" style="width:100%">
+          <div id="yazio-preview" style="margin-top:8px"></div>
+        </div>
+
+        <div class="field">
+          <label>Quel repas ?</label>
+          <select id="rec-meal">
+            <option value="déjeuner">Déjeuner</option>
+            <option value="dîner">Dîner</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Kcal souhaitées pour ce repas</label>
+          <input type="number" id="rec-kcal" placeholder="Ex: 650" style="width:100%">
+        </div>
+
+        <div class="field">
+          <label>Budget</label>
+          <select id="rec-budget">
+            <option value="serré (ingrédients basiques, pas cher)">Serré</option>
+            <option value="moyen" selected>Moyen</option>
+            <option value="je m'en fiche, peu importe le prix">Peu importe</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Temps de préparation max</label>
+          <select id="rec-temps">
+            <option value="15 minutes">15 min</option>
+            <option value="30 minutes" selected>30 min</option>
+            <option value="45 minutes ou plus, j'ai le temps">45 min+</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Remarque (facultatif)</label>
+          <textarea id="rec-remarque" placeholder="Ex: j'ai déjà du poulet à utiliser, pas envie de riz aujourd'hui, je veux un truc avec des œufs..."></textarea>
+        </div>
+        <button class="btn" id="gen-recipe-btn">✨ Générer les recettes</button>
+      </div>
+      <div id="recipe-result"></div>
+    </div>
+  </section>
+
+  <!-- ===================== POIDS ===================== -->
+  <section id="tab-poids">
+    <div class="card">
+      <h2>⚖️ Bilan hebdomadaire</h2>
+      <p class="small muted">Envoie un screen qui montre toutes tes pesées de la semaine (graphique de ton appli). L'IA calcule ta moyenne et compare à la semaine précédente pour te dire si tu dois passer au palier suivant.</p>
+
+      <div class="form-grid">
+        <div class="field">
+          <label>Screen des pesées — semaine actuelle</label>
+          <input type="file" id="weight-img-current" accept="image/*" style="width:100%">
+          <div id="weight-preview-current" style="margin-top:8px"></div>
+        </div>
+        <div class="field">
+          <label>Screen des pesées — semaine précédente</label>
+          <input type="file" id="weight-img-previous" accept="image/*" style="width:100%">
+          <div id="weight-preview-previous" style="margin-top:8px"></div>
+        </div>
+        <button class="btn" id="gen-weight-analysis-btn">📊 Analyser</button>
+      </div>
+      <div id="weight-analysis-result"></div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ============================================================
+   DONNÉES DE BASE
+   ============================================================ */
+
+// Structure des cycles upper/lower
+const PHASES = [
+  {key:'hyper', name:'Hypertrophie', weeks:4, color:'var(--accent)', badgeClass:'hyper'},
+  {key:'force', name:'Force', weeks:4, color:'var(--accent2)', badgeClass:'force'},
+  {key:'endur', name:'Endurance musculaire', weeks:4, color:'var(--good)', badgeClass:'endur'},
+];
+
+// Paliers de séche — valeurs réelles ajustées par Esteban (palier 5 = actuel, plus de shaker, whey au p'tit dej)
+const PALIERS = {
+  p2: {
+    label:'Palier 2', kcal:2600, protein:173, carbs:302, fat:78,
+    note:"Début de séche. Plats inchangés.",
+    meals:[
+      {title:"Petit déjeuner", items:["Flocons d'avoine 60g","Pâte à tartiner 10g","Fromage blanc 300g","Chocolat noir 10g","Banane 100g"], kcal:636, p:30, c:77, l:18},
+      {title:"Shaker (post-dîner)", items:["Banane 100g","Flocons d'avoine 65g","Beurre de cacahuètes 15g","Whey chocolat 30g","Lait demi-écrémé 400mL"], kcal:710, p:50, c:85, l:20},
+      {title:"Déjeuner + Dîner (recettes libres)", items:["Cible/repas: ~650 kcal, ~47g protéines, ~70g glucides, ~17g lipides"], kcal:1300, p:94, c:140, l:34},
+    ]
+  },
+  p3: {
+    label:'Palier 3', kcal:2400, protein:166, carbs:272, fat:72,
+    note:"Réduction des glucides. Chocolat supprimé au p'tit déj.",
+    meals:[
+      {title:"Petit déjeuner", items:["Flocons d'avoine 50g","Pâte à tartiner 10g","Fromage blanc 300g","Banane 90g"], kcal:533, p:28, c:64, l:14},
+      {title:"Shaker (post-dîner)", items:["Banane 100g","Flocons d'avoine 55g","Beurre de cacahuètes 15g","Whey chocolat 30g","Lait demi-écrémé 400mL"], kcal:673, p:48, c:79, l:19},
+      {title:"Déjeuner + Dîner (recettes libres)", items:["Cible/repas: ~600 kcal, ~45g protéines, ~70g glucides, ~17g lipides"], kcal:1195, p:90, c:140, l:34},
+    ]
+  },
+  p4: {
+    label:'Palier 4', kcal:2200, protein:157, carbs:244, fat:66,
+    note:"Beurre de cacahuètes supprimé du shaker.",
+    meals:[
+      {title:"Petit déjeuner", items:["Flocons d'avoine 50g","Pâte à tartiner 10g","Fromage blanc 300g","Banane 90g"], kcal:533, p:28, c:64, l:14},
+      {title:"Shaker (post-dîner)", items:["Banane 100g","Flocons d'avoine 55g","Whey chocolat 30g","Lait demi-écrémé 400mL"], kcal:593, p:45, c:76, l:12},
+      {title:"Déjeuner + Dîner (recettes libres)", items:["Cible/repas: ~538 kcal, ~42g protéines, ~58g glucides, ~17g lipides"], kcal:1075, p:84, c:116, l:35},
+    ]
+  },
+  p5: {
+    label:'Palier 5 (actuel)', kcal:2000, protein:155, carbs:210, fat:60,
+    note:"Palier actuel. Version personnalisée : plus de shaker — whey déplacée au p'tit déj pour libérer des kcal sur déjeuner/dîner.",
+    meals:[
+      {title:"Petit déjeuner (avec whey — version perso)", items:["Flocons d'avoine 45g","Pâte à tartiner 10g","Fromage blanc 250g","Banane 80g","Whey chocolat 40g (déplacée ici)"], kcal:627, p:81, c:57, l:13, custom:true},
+      {title:"Déjeuner + Dîner (recettes libres — kcal augmentées)", items:["Enveloppe élargie car plus de shaker : vise ~686 kcal/repas, ~37g protéines/repas pour rester sur ~2000 kcal et ~155g au total"], kcal:1373, p:74, c:141, l:56},
+    ],
+    originalNote:"Palier 5 original (doc) : shaker séparé à 577 kcal/50g P, plats à 476 kcal/repas. Version actuelle = whey au p'tit déj, plus rien le soir en shaker."
+  },
+};
+
+const STORAGE_KEY_START = 'coach_fitness_start_date';
+const STORAGE_KEY_WEIGHTS = 'coach_fitness_weights';
+const STORAGE_KEY_PALIER = 'coach_fitness_palier';
+
+/* ============================================================
+   UTILS
+   ============================================================ */
+function todayISO(){
+  const d = new Date();
+  return d.toISOString().split('T')[0];
+}
+function addDays(dateStr, days){
+  const d = new Date(dateStr + 'T00:00:00');
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split('T')[0];
+}
+function fmtDate(dateStr){
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('fr-FR', {day:'2-digit', month:'short', year:'numeric'});
+}
+function daysBetween(a, b){
+  const d1 = new Date(a + 'T00:00:00');
+  const d2 = new Date(b + 'T00:00:00');
+  return Math.round((d2 - d1) / (1000*60*60*24));
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+document.querySelectorAll('nav button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ============================================================
+   CYCLE / CALENDRIER
+   ============================================================ */
+function getStartDate(){
+  let v = localStorage.getItem(STORAGE_KEY_START);
+  if(!v){
+    v = addDays(todayISO(), 1); // demain par défaut
+    localStorage.setItem(STORAGE_KEY_START, v);
+  }
+  return v;
+}
+
+function buildPhaseSchedule(startDate){
+  let cursor = startDate;
+  const schedule = [];
+  PHASES.forEach(ph=>{
+    const days = ph.weeks * 7;
+    const end = addDays(cursor, days - 1);
+    schedule.push({...ph, start:cursor, end:end, days});
+    cursor = addDays(end, 1);
+  });
+  return schedule;
+}
+
+function renderCycle(){
+  const startDate = getStartDate();
+  document.getElementById('start-date').value = startDate;
+  const schedule = buildPhaseSchedule(startDate);
+  const today = todayISO();
+
+  // find current phase
+  let current = null;
+  for(const ph of schedule){
+    if(today >= ph.start && today <= ph.end){ current = ph; break; }
+  }
+  if(!current){
+    if(today < schedule[0].start) current = {...schedule[0], notStarted:true};
+    else current = schedule[schedule.length-1]; // after full cycle
+  }
+
+  const box = document.getElementById('current-phase-box');
+  if(current.notStarted){
+    box.innerHTML = `<p>Ton cycle démarre le <b>${fmtDate(schedule[0].start)}</b> avec la phase <span class="badge ${schedule[0].badgeClass}">${schedule[0].name}</span>.</p>`;
+    document.getElementById('cycle-progress').style.width = '0%';
+    document.getElementById('cycle-progress-label').textContent = `Dans ${daysBetween(today, schedule[0].start)} jour(s)`;
+  } else {
+    const dayInPhase = daysBetween(current.start, today) + 1;
+    const pct = Math.min(100, Math.round((dayInPhase / current.days) * 100));
+    box.innerHTML = `
+      <p>Phase actuelle : <span class="badge ${current.badgeClass}">${current.name}</span></p>
+      <p class="small muted">Jour ${dayInPhase} / ${current.days} · Du ${fmtDate(current.start)} au ${fmtDate(current.end)}</p>
+    `;
+    document.getElementById('cycle-progress').style.width = pct + '%';
+    document.getElementById('cycle-progress-label').textContent = `${pct}% de la phase ${current.name}`;
+  }
+
+  // full list
+  const list = document.getElementById('phase-list');
+  list.innerHTML = schedule.map(ph=>{
+    const isCurrent = !current.notStarted && today >= ph.start && today <= ph.end;
+    return `
+      <div class="phase-row ${isCurrent ? 'current' : ''}">
+        <div class="phase-dot" style="background:${ph.color}"></div>
+        <div class="phase-info">
+          <div class="name">${ph.name} ${isCurrent ? '· en cours' : ''}</div>
+          <div class="dates">${fmtDate(ph.start)} → ${fmtDate(ph.end)}</div>
+        </div>
+        <div class="phase-days">${ph.days}j</div>
+      </div>
+    `;
+  }).join('');
+}
+
+document.getElementById('recalc-btn').addEventListener('click', ()=>{
+  const val = document.getElementById('start-date').value;
+  if(val){
+    localStorage.setItem(STORAGE_KEY_START, val);
+    renderCycle();
+  }
+});
+
+/* ============================================================
+   MACROS / PALIERS
+   ============================================================ */
+function getCurrentPalier(){
+  return localStorage.getItem(STORAGE_KEY_PALIER) || 'p5';
+}
+
+function renderMacros(){
+  const current = getCurrentPalier();
+  const selector = document.getElementById('palier-selector');
+  selector.innerHTML = Object.keys(PALIERS).map(k=>`
+    <div class="chip ${k===current?'selected':''}" data-palier="${k}">${PALIERS[k].label}</div>
+  `).join('');
+  selector.querySelectorAll('.chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      localStorage.setItem(STORAGE_KEY_PALIER, chip.dataset.palier);
+      renderMacros();
+    });
+  });
+
+  const p = PALIERS[current];
+  document.getElementById('palier-label').textContent = p.label;
+  document.getElementById('macro-targets').innerHTML = `
+    <div class="macro-box"><div class="val">${p.kcal}</div><div class="lbl">kcal / jour</div></div>
+    <div class="macro-box"><div class="val">${p.protein}g</div><div class="lbl">Protéines</div></div>
+    <div class="macro-box"><div class="val">${p.carbs}g</div><div class="lbl">Glucides</div></div>
+    <div class="macro-box"><div class="val">${p.fat}g</div><div class="lbl">Lipides</div></div>
+  `;
+}
+
+/* ============================================================
+   GÉNÉRATEUR DE RECETTES (Claude API + Vision)
+   ============================================================ */
+
+let yazioImageBase64 = null;
+let yazioImageMediaType = null;
+
+function resizeImageFile(file, maxDim = 1200, quality = 0.8){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = (ev)=>{
+      img.onload = ()=>{
+        let { width, height } = img;
+        if(width > maxDim || height > maxDim){
+          if(width > height){
+            height = Math.round(height * (maxDim / width));
+            width = maxDim;
+          } else {
+            width = Math.round(width * (maxDim / height));
+            height = maxDim;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve({ dataUrl, mediaType: 'image/jpeg' });
+      };
+      img.onerror = reject;
+      img.src = ev.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+document.getElementById('rec-yazio-img').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  const preview = document.getElementById('yazio-preview');
+  if(!file){
+    yazioImageBase64 = null;
+    preview.innerHTML = '';
+    return;
+  }
+  preview.innerHTML = `<div class="loading"><div class="spinner"></div> Traitement de l'image...</div>`;
+  try{
+    const { dataUrl, mediaType } = await resizeImageFile(file);
+    yazioImageMediaType = mediaType;
+    yazioImageBase64 = dataUrl.split(',')[1];
+    preview.innerHTML = `<img src="${dataUrl}" style="max-width:200px;border-radius:10px;border:1px solid var(--border)">`;
+  }catch(err){
+    preview.innerHTML = `<div class="error-box">Impossible de lire cette image. Réessaie avec un autre fichier.</div>`;
+    yazioImageBase64 = null;
+  }
+});
+
+document.getElementById('gen-recipe-btn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('gen-recipe-btn');
+  const resultBox = document.getElementById('recipe-result');
+  const meal = document.getElementById('rec-meal').value;
+  const budget = document.getElementById('rec-budget').value;
+  const temps = document.getElementById('rec-temps').value;
+  const targetKcal = parseFloat(document.getElementById('rec-kcal').value);
+  const remarque = document.getElementById('rec-remarque').value.trim();
+
+  if(!yazioImageBase64){
+    resultBox.innerHTML = `<div class="error-box">Ajoute d'abord une capture d'écran Yazio.</div>`;
+    return;
+  }
+  if(!targetKcal){
+    resultBox.innerHTML = `<div class="error-box">Indique combien de kcal tu veux pour ce repas.</div>`;
+    return;
+  }
+
+  btn.disabled = true;
+  resultBox.innerHTML = `<div class="loading"><div class="spinner"></div> Lecture de Yazio et génération des recettes...</div>`;
+
+  const systemPrompt = `Tu es un coach nutrition francophone pour un pratiquant de musculation en séche.
+On te donne une capture d'écran de l'app Yazio montrant ce qu'il reste à consommer sur la journée (kcal, protéines, glucides, lipides restants). Utilise ces chiffres restants comme référence pour les macros disponibles.
+
+Le client veut une recette de ${meal} d'environ ${targetKcal} kcal (tolérance +/- 50 kcal).
+Répartis les protéines/glucides/lipides de façon cohérente avec ce qu'il reste dans Yazio pour cette part de kcal (par exemple si ce repas représente environ la moitié du reste de la journée, vise environ la moitié des macros restantes, proportionnellement).
+
+Contraintes :
+- Budget : ${budget}
+- Temps de préparation max : ${temps}
+${remarque ? `- Remarque du client (à respecter en priorité) : ${remarque}` : ''}
+
+RÈGLE IMPORTANTE SUR LES QUANTITÉS — reste sur des portions réalistes pour un repas individuel, jamais des quantités massives. Repères pour un homme actif, portion pour UN repas (pas la journée) :
+- Féculent cru (riz, quinoa, pâtes, semoule) : 50-90g cru, jamais plus de 100g cru
+- Féculent cuit (pommes de terre) : 150-300g
+- Viande/poisson/volaille : 120-200g
+- Œufs : 2-4 unités
+- Légumes : 150-300g
+- Fromage blanc/skyr : 150-300g
+- Légumineuses cuites : 100-200g
+Si le calcul mathématique pour atteindre les kcal/macros cibles pousse vers une quantité au-delà de ces repères, ajuste plutôt en ajoutant un autre aliment ou une source de gras/protéine complémentaire, plutôt que de gonfler une seule quantité à un niveau irréaliste.
+
+Génère TROIS propositions de recettes différentes (pas de variations mineures d'une même recette, des plats vraiment différents). Réponds UNIQUEMENT avec les recettes, en français, pas de préambule ni de politesse, structurées ainsi et RIEN D'AUTRE :
+
+PROPOSITION 1 — NOM DU PLAT
+Ingrédients :
+- ...
+Préparation :
+1. ...
+Total estimé : X kcal | Protéines: Xg | Glucides: Xg | Lipides: Xg
+
+PROPOSITION 2 — NOM DU PLAT
+[même structure]
+
+PROPOSITION 3 — NOM DU PLAT
+[même structure]
+
+Pas d'introduction, pas de conclusion, pas de conseils supplémentaires, pas de note en fin de réponse — uniquement les 3 propositions dans ce format exact.`;
+
+  try{
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1800,
+        system: systemPrompt,
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "image", source: { type: "base64", media_type: yazioImageMediaType, data: yazioImageBase64 } },
+              { type: "text", text: `Voici mon écran Yazio du jour. Génère-moi 3 propositions de recette de ${meal} d'environ ${targetKcal} kcal.` }
+            ]
+          }
+        ],
+      })
+    });
+
+    if(!response.ok){
+      let detail = '';
+      try{
+        const errData = await response.json();
+        detail = errData?.error?.message || JSON.stringify(errData);
+      }catch(_){}
+      throw new Error(`${response.status}${detail ? ' — ' + detail : ''}`);
+    }
+
+    const data = await response.json();
+    const textBlocks = (data.content || []).filter(b => b.type === "text").map(b => b.text);
+    const fullText = textBlocks.join("\n").trim();
+
+    if(!fullText){
+      throw new Error("Réponse vide");
+    }
+
+    resultBox.innerHTML = `<div class="recipe-output">${escapeHtml(fullText)}</div>`;
+  }catch(err){
+    resultBox.innerHTML = `<div class="error-box">Erreur lors de la génération : ${escapeHtml(err.message)}. Réessaie.</div>`;
+  }finally{
+    btn.disabled = false;
+  }
+});
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+/* ============================================================
+   BILAN HEBDOMADAIRE POIDS (Claude API + Vision)
+   ============================================================ */
+
+let weightImgCurrent = null; // {base64, mediaType}
+let weightImgPrevious = null;
+
+function setupWeightImageInput(inputId, previewId, setter){
+  document.getElementById(inputId).addEventListener('change', async (e)=>{
+    const file = e.target.files[0];
+    const preview = document.getElementById(previewId);
+    if(!file){ setter(null); preview.innerHTML = ''; return; }
+    preview.innerHTML = `<div class="loading"><div class="spinner"></div> Traitement de l'image...</div>`;
+    try{
+      const { dataUrl, mediaType } = await resizeImageFile(file);
+      setter({ base64: dataUrl.split(',')[1], mediaType });
+      preview.innerHTML = `<img src="${dataUrl}" style="max-width:200px;border-radius:10px;border:1px solid var(--border)">`;
+    }catch(err){
+      preview.innerHTML = `<div class="error-box">Impossible de lire cette image. Réessaie avec un autre fichier.</div>`;
+      setter(null);
+    }
+  });
+}
+
+setupWeightImageInput('weight-img-current', 'weight-preview-current', (v)=> weightImgCurrent = v);
+setupWeightImageInput('weight-img-previous', 'weight-preview-previous', (v)=> weightImgPrevious = v);
+
+document.getElementById('gen-weight-analysis-btn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('gen-weight-analysis-btn');
+  const resultBox = document.getElementById('weight-analysis-result');
+
+  if(!weightImgCurrent || !weightImgPrevious){
+    resultBox.innerHTML = `<div class="error-box">Ajoute les deux screens (semaine actuelle et semaine précédente).</div>`;
+    return;
+  }
+
+  const current = getCurrentPalier();
+  const p = PALIERS[current];
+
+  btn.disabled = true;
+  resultBox.innerHTML = `<div class="loading"><div class="spinner"></div> Analyse des pesées en cours...</div>`;
+
+  const systemPrompt = `Tu es un coach en musculation/séche francophone. On te donne deux captures d'écran d'une app de suivi de poids : la première montre les pesées de la semaine actuelle, la seconde celles de la semaine précédente.
+
+Le client est actuellement au ${p.label} de son plan de séche (${p.kcal} kcal/jour, ${p.protein}g de protéines).
+
+Règle de décision du plan : on passe au palier suivant (réduction des kcal) si la perte de poids sur la semaine est insuffisante (moyenne de la semaine quasi stable ou baisse inférieure à 200g par rapport à la moyenne de la semaine précédente). Si la moyenne a bien baissé (200g ou plus), on reste sur le palier actuel.
+
+Étapes :
+1. Lis les valeurs de poids visibles sur chaque capture.
+2. Calcule la moyenne de la semaine actuelle et la moyenne de la semaine précédente.
+3. Calcule la différence entre les deux moyennes.
+4. Applique la règle de décision ci-dessus.
+
+Réponds UNIQUEMENT en français, de façon concise, avec ce format exact et rien d'autre :
+
+Moyenne semaine actuelle : X kg
+Moyenne semaine précédente : X kg
+Différence : X kg
+
+Recommandation : [Passer au palier suivant / Rester sur le palier actuel]
+
+Justification : [une phrase courte expliquant pourquoi, basée sur la différence calculée]`;
+
+  try{
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 500,
+        system: systemPrompt,
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: "Capture 1 — semaine actuelle :" },
+              { type: "image", source: { type: "base64", media_type: weightImgCurrent.mediaType, data: weightImgCurrent.base64 } },
+              { type: "text", text: "Capture 2 — semaine précédente :" },
+              { type: "image", source: { type: "base64", media_type: weightImgPrevious.mediaType, data: weightImgPrevious.base64 } },
+              { type: "text", text: "Analyse ces deux semaines et donne-moi ta recommandation." }
+            ]
+          }
+        ],
+      })
+    });
+
+    if(!response.ok){
+      let detail = '';
+      try{
+        const errData = await response.json();
+        detail = errData?.error?.message || JSON.stringify(errData);
+      }catch(_){}
+      throw new Error(`${response.status}${detail ? ' — ' + detail : ''}`);
+    }
+
+    const data = await response.json();
+    const textBlocks = (data.content || []).filter(b => b.type === "text").map(b => b.text);
+    const fullText = textBlocks.join("\n").trim();
+
+    if(!fullText){
+      throw new Error("Réponse vide");
+    }
+
+    resultBox.innerHTML = `<div class="recipe-output">${escapeHtml(fullText)}</div>`;
+  }catch(err){
+    resultBox.innerHTML = `<div class="error-box">Erreur lors de l'analyse : ${escapeHtml(err.message)}. Réessaie.</div>`;
+  }finally{
+    btn.disabled = false;
+  }
+});
+
+/* ============================================================
+   INIT
+   ============================================================ */
+renderCycle();
+renderMacros();
+</script>
+</body>
+</html>
