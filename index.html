@@ -109,7 +109,7 @@
   }
   .phase-row.current{border-color:var(--accent);}
   .phase-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-  .phase-info{flex:1;}
+  .phase-info{flex:1;min-width:0;}
   .phase-info .name{font-weight:700;font-size:0.92rem;}
   .phase-info .dates{color:var(--muted);font-size:0.78rem;}
   .phase-days{font-size:0.78rem;color:var(--muted);text-align:right;}
@@ -129,8 +129,8 @@
   }
 
   /* Weight tracker */
-  .weight-input-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
-  input[type=number], input[type=text], input[type=date], select, textarea{
+  .weight-input-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;}
+  input[type=number], input[type=text], input[type=password], input[type=date], select, textarea{
     background:var(--panel2);
     border:1px solid var(--border);
     color:var(--text);
@@ -154,7 +154,11 @@
   .btn:hover{opacity:.9;}
   .btn.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--border);}
   .btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+  .btn.small{padding:7px 12px;font-size:0.78rem;}
   .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .ics-btn{padding:6px 10px;font-size:1rem;flex-shrink:0;line-height:1;}
+
+  .inline-actions{display:flex;gap:8px;flex-wrap:wrap;}
 
   table{width:100%;border-collapse:collapse;font-size:0.85rem;}
   th,td{padding:8px 6px;text-align:left;border-bottom:1px solid var(--border);}
@@ -182,7 +186,7 @@
     padding:12px 14px;
     margin-bottom:10px;
   }
-  .meal-block .meal-title{font-weight:700;font-size:0.88rem;margin-bottom:6px;display:flex;justify-content:space-between;}
+  .meal-block .meal-title{font-weight:700;font-size:0.88rem;margin-bottom:6px;display:flex;justify-content:space-between;gap:8px;}
   .meal-block ul{margin:0;padding-left:18px;font-size:0.83rem;color:var(--muted);}
   .meal-block li{margin-bottom:3px;}
   .meal-total{font-size:0.8rem;margin-top:8px;font-weight:600;color:var(--text);}
@@ -239,6 +243,7 @@
     <button data-tab="macros">Macros</button>
     <button data-tab="recettes">Recettes</button>
     <button data-tab="poids">Poids</button>
+    <button data-tab="reglages">Réglages</button>
   </nav>
 
   <!-- ===================== CYCLE ===================== -->
@@ -252,7 +257,7 @@
 
     <div class="card">
       <h2>🗓️ Calendrier du cycle</h2>
-      <p class="small muted">Démarrage : demain. Modifie la date si besoin.</p>
+      <p class="small muted">Modifie la date de départ si besoin. Le bouton 📅 sur chaque phase ajoute l'événement à ton calendrier iPhone.</p>
       <div class="weight-input-row">
         <div>
           <label>Date de départ (Hypertrophie)</label>
@@ -267,10 +272,53 @@
   <!-- ===================== MACROS ===================== -->
   <section id="tab-macros">
     <div class="card">
-      <h2>🎯 Objectifs — <span id="palier-label"></span></h2>
-      <div class="chip-row" id="palier-selector"></div>
-      <div class="macro-grid" id="macro-targets"></div>
-      <p class="small muted" style="margin-top:10px">Kcal et protéines viennent de ton plan de séche. Glucides/lipides calculés (lipides ~27% des kcal pour préserver les hormones en déficit, le reste en glucides) — à ajuster si besoin, le suivi précis se fait sur Yazio.</p>
+      <h2>🎯 Objectifs</h2>
+
+      <label>Mode</label>
+      <div class="chip-row" id="mode-selector"></div>
+
+      <label style="margin-top:14px">Étape / palier</label>
+      <div class="chip-row" id="step-selector"></div>
+
+      <div class="inline-actions" id="step-actions" style="margin-top:10px"></div>
+
+      <div id="macro-content"></div>
+
+      <p class="small muted" id="mode-note" style="margin-top:10px"></p>
+    </div>
+
+    <div class="card" id="step-form-card" style="display:none">
+      <h3 id="step-form-title">Ajouter une étape</h3>
+      <div class="form-grid">
+        <div class="field">
+          <label>Nom de l'étape</label>
+          <input type="text" id="sf-label" style="width:100%" placeholder="Ex: Étape 1">
+        </div>
+        <div class="field">
+          <label>Kcal / jour</label>
+          <input type="number" id="sf-kcal" style="width:100%">
+        </div>
+        <div class="field">
+          <label>Protéines (g)</label>
+          <input type="number" id="sf-protein" style="width:100%">
+        </div>
+        <div class="field">
+          <label>Glucides (g) — facultatif</label>
+          <input type="number" id="sf-carbs" style="width:100%">
+        </div>
+        <div class="field">
+          <label>Lipides (g) — facultatif</label>
+          <input type="number" id="sf-fat" style="width:100%">
+        </div>
+        <div class="field">
+          <label>Note (facultatif)</label>
+          <textarea id="sf-note"></textarea>
+        </div>
+      </div>
+      <div class="inline-actions" style="margin-top:10px">
+        <button class="btn" id="sf-save-btn">Enregistrer</button>
+        <button class="btn ghost" id="sf-cancel-btn">Annuler</button>
+      </div>
     </div>
   </section>
 
@@ -278,11 +326,11 @@
   <section id="tab-recettes">
     <div class="card">
       <h2>🍳 Générateur de recettes</h2>
-      <p class="small muted">Envoie ton écran Yazio du jour, précise combien de kcal tu veux pour ce repas — l'IA lit ce qu'il te reste en protéines/glucides/lipides et te propose plusieurs recettes calibrées.</p>
+      <p class="small muted">Précise combien de kcal tu veux pour ce repas — l'IA te propose plusieurs recettes calibrées. La capture Yazio est facultative : sans elle, l'IA se base sur les kcal indiquées et tes objectifs journaliers actuels.</p>
 
       <div class="form-grid">
         <div class="field">
-          <label>Capture d'écran Yazio (reste de la journée)</label>
+          <label>Capture d'écran Yazio (facultatif — reste de la journée)</label>
           <input type="file" id="rec-yazio-img" accept="image/*" style="width:100%">
           <div id="yazio-preview" style="margin-top:8px"></div>
         </div>
@@ -330,22 +378,49 @@
   <section id="tab-poids">
     <div class="card">
       <h2>⚖️ Bilan hebdomadaire</h2>
-      <p class="small muted">Envoie un screen qui montre toutes tes pesées de la semaine (graphique de ton appli). L'IA calcule ta moyenne et compare à la semaine précédente pour te dire si tu dois passer au palier suivant.</p>
+      <p class="small muted">Envoie un screen qui montre toutes tes pesées de la semaine (graphique de ton appli). L'IA calcule ta moyenne, l'enregistre avec la date, et la compare automatiquement à la dernière moyenne enregistrée pour te dire si tu dois changer de palier.</p>
 
       <div class="form-grid">
         <div class="field">
-          <label>Screen des pesées — semaine actuelle</label>
-          <input type="file" id="weight-img-current" accept="image/*" style="width:100%">
-          <div id="weight-preview-current" style="margin-top:8px"></div>
+          <label>Screen des pesées de cette semaine</label>
+          <input type="file" id="weight-img" accept="image/*" style="width:100%">
+          <div id="weight-preview" style="margin-top:8px"></div>
         </div>
-        <div class="field">
-          <label>Screen des pesées — semaine précédente</label>
-          <input type="file" id="weight-img-previous" accept="image/*" style="width:100%">
-          <div id="weight-preview-previous" style="margin-top:8px"></div>
-        </div>
-        <button class="btn" id="gen-weight-analysis-btn">📊 Analyser</button>
+        <button class="btn" id="analyze-weight-btn">📊 Analyser cette semaine</button>
       </div>
       <div id="weight-analysis-result"></div>
+
+      <h3>Ou saisis la moyenne manuellement</h3>
+      <div class="weight-input-row">
+        <input type="number" step="0.1" id="manual-avg-input" placeholder="Ex: 81.4">
+        <button class="btn secondary" id="manual-avg-btn">Enregistrer</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📈 Historique des moyennes</h2>
+      <div id="weight-history"></div>
+    </div>
+  </section>
+
+  <!-- ===================== RÉGLAGES ===================== -->
+  <section id="tab-reglages">
+    <div class="card">
+      <h2>⚙️ Clé API Claude</h2>
+      <p class="small muted">Nécessaire pour le générateur de recettes et le bilan de poids (lecture des captures d'écran). Ta clé est stockée uniquement dans le stockage local de ton téléphone — elle n'est jamais publiée sur GitHub ni envoyée ailleurs qu'à l'API Anthropic.</p>
+      <div class="field">
+        <label>Clé API Anthropic (commence par sk-ant-...)</label>
+        <div style="display:flex;gap:8px">
+          <input type="password" id="api-key-input" style="flex:1" placeholder="sk-ant-...">
+          <button class="btn secondary" id="toggle-key-visibility" type="button">👁️</button>
+        </div>
+      </div>
+      <div class="inline-actions" style="margin-top:10px">
+        <button class="btn" id="save-key-btn">Enregistrer</button>
+        <button class="btn ghost" id="clear-key-btn">Effacer</button>
+      </div>
+      <div id="key-status" class="small muted" style="margin-top:8px"></div>
+      <p class="small muted" style="margin-top:14px">Pour obtenir une clé : va sur console.anthropic.com → API Keys → Create Key. Cette clé donne accès à ton compte de facturation Anthropic : ne la partage jamais, et ne l'écris jamais en dur dans le code du site (elle serait visible publiquement sur GitHub Pages). Ici, elle reste uniquement sur cet appareil.</p>
     </div>
   </section>
 
@@ -363,49 +438,71 @@ const PHASES = [
   {key:'endur', name:'Endurance musculaire', weeks:4, color:'var(--good)', badgeClass:'endur'},
 ];
 
-// Paliers de séche — valeurs réelles ajustées par Esteban (palier 5 = actuel, plus de shaker, whey au p'tit dej)
-const PALIERS = {
-  p2: {
-    label:'Palier 2', kcal:2600, protein:173, carbs:302, fat:78,
-    note:"Début de séche. Plats inchangés.",
-    meals:[
-      {title:"Petit déjeuner", items:["Flocons d'avoine 60g","Pâte à tartiner 10g","Fromage blanc 300g","Chocolat noir 10g","Banane 100g"], kcal:636, p:30, c:77, l:18},
-      {title:"Shaker (post-dîner)", items:["Banane 100g","Flocons d'avoine 65g","Beurre de cacahuètes 15g","Whey chocolat 30g","Lait demi-écrémé 400mL"], kcal:710, p:50, c:85, l:20},
-      {title:"Déjeuner + Dîner (recettes libres)", items:["Cible/repas: ~650 kcal, ~47g protéines, ~70g glucides, ~17g lipides"], kcal:1300, p:94, c:140, l:34},
-    ]
+// Modes de vie : sèche / reverse diet / prise de masse.
+// Chaque mode a ses propres étapes ("paliers"). Seul le mode Sèche a des
+// étapes prédéfinies pour l'instant — les autres se remplissent via
+// "+ Ajouter une étape" dans l'app, sans toucher au code.
+const MODES = {
+  seche: {
+    label:'Sèche', icon:'🔥',
+    note:"Kcal et protéines viennent du plan de sèche. Glucides/lipides calculés (lipides ~27% des kcal pour préserver les hormones en déficit, le reste en glucides) — à ajuster si besoin, le suivi précis se fait sur Yazio.",
+    steps: {
+      p2: {
+        label:'Palier 2', kcal:2600, protein:173, carbs:302, fat:78,
+        note:"Début de séche. Plats inchangés.",
+        meals:[
+          {title:"Petit déjeuner", items:["Flocons d'avoine 60g","Pâte à tartiner 10g","Fromage blanc 300g","Chocolat noir 10g","Banane 100g"], kcal:636, p:30, c:77, l:18},
+          {title:"Shaker (post-dîner)", items:["Banane 100g","Flocons d'avoine 65g","Beurre de cacahuètes 15g","Whey chocolat 30g","Lait demi-écrémé 400mL"], kcal:710, p:50, c:85, l:20},
+          {title:"Déjeuner + Dîner (recettes libres)", items:["Cible/repas: ~650 kcal, ~47g protéines, ~70g glucides, ~17g lipides"], kcal:1300, p:94, c:140, l:34},
+        ]
+      },
+      p3: {
+        label:'Palier 3', kcal:2400, protein:166, carbs:272, fat:72,
+        note:"Réduction des glucides. Chocolat supprimé au p'tit déj.",
+        meals:[
+          {title:"Petit déjeuner", items:["Flocons d'avoine 50g","Pâte à tartiner 10g","Fromage blanc 300g","Banane 90g"], kcal:533, p:28, c:64, l:14},
+          {title:"Shaker (post-dîner)", items:["Banane 100g","Flocons d'avoine 55g","Beurre de cacahuètes 15g","Whey chocolat 30g","Lait demi-écrémé 400mL"], kcal:673, p:48, c:79, l:19},
+          {title:"Déjeuner + Dîner (recettes libres)", items:["Cible/repas: ~600 kcal, ~45g protéines, ~70g glucides, ~17g lipides"], kcal:1195, p:90, c:140, l:34},
+        ]
+      },
+      p4: {
+        label:'Palier 4', kcal:2200, protein:157, carbs:244, fat:66,
+        note:"Beurre de cacahuètes supprimé du shaker.",
+        meals:[
+          {title:"Petit déjeuner", items:["Flocons d'avoine 50g","Pâte à tartiner 10g","Fromage blanc 300g","Banane 90g"], kcal:533, p:28, c:64, l:14},
+          {title:"Shaker (post-dîner)", items:["Banane 100g","Flocons d'avoine 55g","Whey chocolat 30g","Lait demi-écrémé 400mL"], kcal:593, p:45, c:76, l:12},
+          {title:"Déjeuner + Dîner (recettes libres)", items:["Cible/repas: ~538 kcal, ~42g protéines, ~58g glucides, ~17g lipides"], kcal:1075, p:84, c:116, l:35},
+        ]
+      },
+      p5: {
+        label:'Palier 5', kcal:2000, protein:155, carbs:210, fat:60,
+        note:"Version personnalisée : plus de shaker — whey déplacée au p'tit déj pour libérer des kcal sur déjeuner/dîner.",
+        meals:[
+          {title:"Petit déjeuner (avec whey — version perso)", items:["Flocons d'avoine 45g","Pâte à tartiner 10g","Fromage blanc 250g","Banane 80g","Whey chocolat 40g (déplacée ici)"], kcal:627, p:81, c:57, l:13},
+          {title:"Déjeuner + Dîner (recettes libres — kcal augmentées)", items:["Enveloppe élargie car plus de shaker : vise ~686 kcal/repas, ~37g protéines/repas pour rester sur ~2000 kcal et ~155g au total"], kcal:1373, p:74, c:141, l:56},
+        ]
+      },
+    }
   },
-  p3: {
-    label:'Palier 3', kcal:2400, protein:166, carbs:272, fat:72,
-    note:"Réduction des glucides. Chocolat supprimé au p'tit déj.",
-    meals:[
-      {title:"Petit déjeuner", items:["Flocons d'avoine 50g","Pâte à tartiner 10g","Fromage blanc 300g","Banane 90g"], kcal:533, p:28, c:64, l:14},
-      {title:"Shaker (post-dîner)", items:["Banane 100g","Flocons d'avoine 55g","Beurre de cacahuètes 15g","Whey chocolat 30g","Lait demi-écrémé 400mL"], kcal:673, p:48, c:79, l:19},
-      {title:"Déjeuner + Dîner (recettes libres)", items:["Cible/repas: ~600 kcal, ~45g protéines, ~70g glucides, ~17g lipides"], kcal:1195, p:90, c:140, l:34},
-    ]
+  reverse: {
+    label:'Reverse diet', icon:'📈',
+    note:"Aucune étape définie pour l'instant. Utilise « + Ajouter une étape » ci-dessus pour créer tes paliers de remontée calorique au fur et à mesure.",
+    steps: {}
   },
-  p4: {
-    label:'Palier 4', kcal:2200, protein:157, carbs:244, fat:66,
-    note:"Beurre de cacahuètes supprimé du shaker.",
-    meals:[
-      {title:"Petit déjeuner", items:["Flocons d'avoine 50g","Pâte à tartiner 10g","Fromage blanc 300g","Banane 90g"], kcal:533, p:28, c:64, l:14},
-      {title:"Shaker (post-dîner)", items:["Banane 100g","Flocons d'avoine 55g","Whey chocolat 30g","Lait demi-écrémé 400mL"], kcal:593, p:45, c:76, l:12},
-      {title:"Déjeuner + Dîner (recettes libres)", items:["Cible/repas: ~538 kcal, ~42g protéines, ~58g glucides, ~17g lipides"], kcal:1075, p:84, c:116, l:35},
-    ]
-  },
-  p5: {
-    label:'Palier 5 (actuel)', kcal:2000, protein:155, carbs:210, fat:60,
-    note:"Palier actuel. Version personnalisée : plus de shaker — whey déplacée au p'tit déj pour libérer des kcal sur déjeuner/dîner.",
-    meals:[
-      {title:"Petit déjeuner (avec whey — version perso)", items:["Flocons d'avoine 45g","Pâte à tartiner 10g","Fromage blanc 250g","Banane 80g","Whey chocolat 40g (déplacée ici)"], kcal:627, p:81, c:57, l:13, custom:true},
-      {title:"Déjeuner + Dîner (recettes libres — kcal augmentées)", items:["Enveloppe élargie car plus de shaker : vise ~686 kcal/repas, ~37g protéines/repas pour rester sur ~2000 kcal et ~155g au total"], kcal:1373, p:74, c:141, l:56},
-    ],
-    originalNote:"Palier 5 original (doc) : shaker séparé à 577 kcal/50g P, plats à 476 kcal/repas. Version actuelle = whey au p'tit déj, plus rien le soir en shaker."
+  masse: {
+    label:'Prise de masse', icon:'💪',
+    note:"Aucune étape définie pour l'instant. Utilise « + Ajouter une étape » ci-dessus pour créer tes paliers de prise de masse.",
+    steps: {}
   },
 };
 
 const STORAGE_KEY_START = 'coach_fitness_start_date';
 const STORAGE_KEY_WEIGHTS = 'coach_fitness_weights';
-const STORAGE_KEY_PALIER = 'coach_fitness_palier';
+const STORAGE_KEY_MODES_DATA = 'coach_fitness_modes_data';
+const STORAGE_KEY_CURRENT_MODE = 'coach_fitness_current_mode';
+const STORAGE_KEY_SELECTED_STEPS = 'coach_fitness_selected_steps';
+const STORAGE_KEY_APIKEY = 'coach_fitness_api_key';
+const LEGACY_PALIER_KEY = 'coach_fitness_palier';
 
 /* ============================================================
    UTILS
@@ -427,6 +524,14 @@ function daysBetween(a, b){
   const d1 = new Date(a + 'T00:00:00');
   const d2 = new Date(b + 'T00:00:00');
   return Math.round((d2 - d1) / (1000*60*60*24));
+}
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+function uid(){
+  return 'id_' + Math.random().toString(36).slice(2, 10);
 }
 
 /* ============================================================
@@ -463,6 +568,43 @@ function buildPhaseSchedule(startDate){
     cursor = addDays(end, 1);
   });
   return schedule;
+}
+
+function pad2(n){ return String(n).padStart(2, '0'); }
+
+function toICSDate(dateStr){
+  const d = new Date(dateStr + 'T00:00:00');
+  return `${d.getFullYear()}${pad2(d.getMonth()+1)}${pad2(d.getDate())}`;
+}
+
+function buildICS(phase){
+  const dtStart = toICSDate(phase.start);
+  const dtEndExclusive = toICSDate(addDays(phase.end, 1)); // DTEND exclusif pour un événement "journée entière"
+  const now = new Date();
+  const dtStamp = `${now.getUTCFullYear()}${pad2(now.getUTCMonth()+1)}${pad2(now.getUTCDate())}T${pad2(now.getUTCHours())}${pad2(now.getUTCMinutes())}${pad2(now.getUTCSeconds())}Z`;
+  return [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Suivi Musculation Esteban//FR',
+    'CALSCALE:GREGORIAN',
+    'BEGIN:VEVENT',
+    `UID:${phase.key}-${phase.start}@suivi-musculation`,
+    `DTSTAMP:${dtStamp}`,
+    `DTSTART;VALUE=DATE:${dtStart}`,
+    `DTEND;VALUE=DATE:${dtEndExclusive}`,
+    `SUMMARY:Phase ${phase.name} — Musculation`,
+    `DESCRIPTION:Phase ${phase.name} du cycle de périodisation (${phase.days} jours).`,
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n');
+}
+
+function addPhaseToCalendar(phase){
+  const ics = buildICS(phase);
+  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  setTimeout(()=> URL.revokeObjectURL(url), 5000);
 }
 
 function renderCycle(){
@@ -509,9 +651,21 @@ function renderCycle(){
           <div class="dates">${fmtDate(ph.start)} → ${fmtDate(ph.end)}</div>
         </div>
         <div class="phase-days">${ph.days}j</div>
+        <button class="btn ghost ics-btn" data-key="${ph.key}" data-start="${ph.start}" data-end="${ph.end}" data-name="${ph.name}" data-days="${ph.days}" title="Ajouter au calendrier iPhone">📅</button>
       </div>
     `;
   }).join('');
+  list.querySelectorAll('.ics-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      addPhaseToCalendar({
+        key: btn.dataset.key,
+        start: btn.dataset.start,
+        end: btn.dataset.end,
+        name: btn.dataset.name,
+        days: parseInt(btn.dataset.days, 10)
+      });
+    });
+  });
 }
 
 document.getElementById('recalc-btn').addEventListener('click', ()=>{
@@ -523,42 +677,266 @@ document.getElementById('recalc-btn').addEventListener('click', ()=>{
 });
 
 /* ============================================================
-   MACROS / PALIERS
+   MACROS / MODES / ÉTAPES
    ============================================================ */
-function getCurrentPalier(){
-  return localStorage.getItem(STORAGE_KEY_PALIER) || 'p5';
+function migrateLegacyPalier(){
+  if(localStorage.getItem(STORAGE_KEY_SELECTED_STEPS)) return;
+  const legacy = localStorage.getItem(LEGACY_PALIER_KEY);
+  if(legacy){
+    localStorage.setItem(STORAGE_KEY_SELECTED_STEPS, JSON.stringify({ seche: legacy }));
+  }
 }
 
+function loadModesData(){
+  let raw = localStorage.getItem(STORAGE_KEY_MODES_DATA);
+  let data;
+  try{ data = raw ? JSON.parse(raw) : null; }catch(_){ data = null; }
+  if(!data) data = {};
+  Object.keys(MODES).forEach(key=>{
+    if(!data[key]){
+      data[key] = { steps: JSON.parse(JSON.stringify(MODES[key].steps)) };
+    }
+  });
+  saveModesData(data);
+  return data;
+}
+function saveModesData(data){
+  localStorage.setItem(STORAGE_KEY_MODES_DATA, JSON.stringify(data));
+}
+
+function getCurrentMode(){
+  return localStorage.getItem(STORAGE_KEY_CURRENT_MODE) || 'seche';
+}
+function setCurrentMode(key){
+  localStorage.setItem(STORAGE_KEY_CURRENT_MODE, key);
+}
+
+function getSelectedSteps(){
+  try{ return JSON.parse(localStorage.getItem(STORAGE_KEY_SELECTED_STEPS)) || {}; }catch(_){ return {}; }
+}
+function setSelectedStep(modeKey, stepKey){
+  const sel = getSelectedSteps();
+  sel[modeKey] = stepKey;
+  localStorage.setItem(STORAGE_KEY_SELECTED_STEPS, JSON.stringify(sel));
+}
+// Étape par défaut à la première utilisation (avant tout choix explicite),
+// pour retomber sur le palier réellement en cours plutôt que le premier de la liste.
+const DEFAULT_STEP_KEY = { seche: 'p5' };
+
+function getSelectedStepKey(modeKey){
+  const sel = getSelectedSteps();
+  const data = loadModesData();
+  const stepKeys = Object.keys(data[modeKey].steps);
+  if(sel[modeKey] && data[modeKey].steps[sel[modeKey]]) return sel[modeKey];
+  const fallback = DEFAULT_STEP_KEY[modeKey];
+  if(fallback && data[modeKey].steps[fallback]) return fallback;
+  return stepKeys.length ? stepKeys[0] : null;
+}
+function getSelectedStepData(){
+  const modeKey = getCurrentMode();
+  const data = loadModesData();
+  const stepKey = getSelectedStepKey(modeKey);
+  if(!stepKey) return null;
+  return { key: stepKey, ...data[modeKey].steps[stepKey] };
+}
+function getModeLabel(modeKey){
+  modeKey = modeKey || getCurrentMode();
+  return MODES[modeKey] ? MODES[modeKey].label : modeKey;
+}
+
+let editingStepKey = null; // null = ajout, sinon clé de l'étape en cours d'édition
+
 function renderMacros(){
-  const current = getCurrentPalier();
-  const selector = document.getElementById('palier-selector');
-  selector.innerHTML = Object.keys(PALIERS).map(k=>`
-    <div class="chip ${k===current?'selected':''}" data-palier="${k}">${PALIERS[k].label}</div>
+  const data = loadModesData();
+  const modeKey = getCurrentMode();
+
+  const modeSel = document.getElementById('mode-selector');
+  modeSel.innerHTML = Object.keys(MODES).map(k=>`
+    <div class="chip ${k===modeKey?'selected':''}" data-mode="${k}">${MODES[k].icon} ${MODES[k].label}</div>
   `).join('');
-  selector.querySelectorAll('.chip').forEach(chip=>{
+  modeSel.querySelectorAll('.chip').forEach(chip=>{
     chip.addEventListener('click', ()=>{
-      localStorage.setItem(STORAGE_KEY_PALIER, chip.dataset.palier);
+      setCurrentMode(chip.dataset.mode);
+      hideStepForm();
       renderMacros();
     });
   });
 
-  const p = PALIERS[current];
-  document.getElementById('palier-label').textContent = p.label;
-  document.getElementById('macro-targets').innerHTML = `
-    <div class="macro-box"><div class="val">${p.kcal}</div><div class="lbl">kcal / jour</div></div>
-    <div class="macro-box"><div class="val">${p.protein}g</div><div class="lbl">Protéines</div></div>
-    <div class="macro-box"><div class="val">${p.carbs}g</div><div class="lbl">Glucides</div></div>
-    <div class="macro-box"><div class="val">${p.fat}g</div><div class="lbl">Lipides</div></div>
-  `;
+  document.getElementById('mode-note').textContent = MODES[modeKey].note;
+
+  const steps = data[modeKey].steps;
+  const stepKeys = Object.keys(steps);
+  const currentStepKey = getSelectedStepKey(modeKey);
+
+  const stepSel = document.getElementById('step-selector');
+  if(stepKeys.length === 0){
+    stepSel.innerHTML = `<span class="small muted">Aucune étape pour ce mode pour l'instant.</span>`;
+  } else {
+    stepSel.innerHTML = stepKeys.map(k=>`
+      <div class="chip ${k===currentStepKey?'selected':''}" data-step="${k}">${escapeHtml(steps[k].label)}</div>
+    `).join('');
+    stepSel.querySelectorAll('.chip').forEach(chip=>{
+      chip.addEventListener('click', ()=>{
+        setSelectedStep(modeKey, chip.dataset.step);
+        hideStepForm();
+        renderMacros();
+      });
+    });
+  }
+
+  const actions = document.getElementById('step-actions');
+  let actionsHtml = `<button class="btn secondary small" id="add-step-btn">+ Ajouter une étape</button>`;
+  if(currentStepKey){
+    actionsHtml += `<button class="btn ghost small" id="edit-step-btn">✏️ Modifier</button>
+                    <button class="btn ghost small" id="delete-step-btn">🗑️ Supprimer</button>`;
+  }
+  actions.innerHTML = actionsHtml;
+  document.getElementById('add-step-btn').addEventListener('click', ()=> showStepForm(null));
+  if(currentStepKey){
+    document.getElementById('edit-step-btn').addEventListener('click', ()=> showStepForm(currentStepKey));
+    document.getElementById('delete-step-btn').addEventListener('click', ()=> deleteStep(modeKey, currentStepKey));
+  }
+
+  const content = document.getElementById('macro-content');
+  if(!currentStepKey){
+    content.innerHTML = `<p class="small muted" style="margin-top:12px">Ajoute une première étape pour ce mode avec le bouton ci-dessus.</p>`;
+    return;
+  }
+  const s = steps[currentStepKey];
+  let html = `<div class="macro-grid">
+    <div class="macro-box"><div class="val">${s.kcal}</div><div class="lbl">kcal / jour</div></div>
+    <div class="macro-box"><div class="val">${s.protein}g</div><div class="lbl">Protéines</div></div>
+    <div class="macro-box"><div class="val">${s.carbs ?? '—'}g</div><div class="lbl">Glucides</div></div>
+    <div class="macro-box"><div class="val">${s.fat ?? '—'}g</div><div class="lbl">Lipides</div></div>
+  </div>`;
+  if(s.note){
+    html += `<p class="small muted">${escapeHtml(s.note)}</p>`;
+  }
+  if(Array.isArray(s.meals) && s.meals.length){
+    html += s.meals.map(m=>`
+      <div class="meal-block">
+        <div class="meal-title"><span>${escapeHtml(m.title)}</span><span>${m.kcal} kcal</span></div>
+        <ul>${m.items.map(it=>`<li>${escapeHtml(it)}</li>`).join('')}</ul>
+        <div class="meal-total">P: ${m.p}g · G: ${m.c}g · L: ${m.l}g</div>
+      </div>
+    `).join('');
+  }
+  content.innerHTML = html;
+}
+
+function showStepForm(stepKey){
+  editingStepKey = stepKey;
+  const modeKey = getCurrentMode();
+  const data = loadModesData();
+  const s = stepKey ? data[modeKey].steps[stepKey] : null;
+  document.getElementById('step-form-title').textContent = stepKey ? "Modifier l'étape" : 'Ajouter une étape';
+  document.getElementById('sf-label').value = s ? s.label : '';
+  document.getElementById('sf-kcal').value = s ? s.kcal : '';
+  document.getElementById('sf-protein').value = s ? s.protein : '';
+  document.getElementById('sf-carbs').value = (s && s.carbs != null) ? s.carbs : '';
+  document.getElementById('sf-fat').value = (s && s.fat != null) ? s.fat : '';
+  document.getElementById('sf-note').value = (s && s.note) ? s.note : '';
+  document.getElementById('step-form-card').style.display = 'block';
+  document.getElementById('step-form-card').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+function hideStepForm(){
+  editingStepKey = null;
+  document.getElementById('step-form-card').style.display = 'none';
+}
+document.getElementById('sf-cancel-btn').addEventListener('click', hideStepForm);
+document.getElementById('sf-save-btn').addEventListener('click', ()=>{
+  const label = document.getElementById('sf-label').value.trim();
+  const kcal = parseFloat(document.getElementById('sf-kcal').value);
+  const protein = parseFloat(document.getElementById('sf-protein').value);
+  const carbsRaw = document.getElementById('sf-carbs').value;
+  const fatRaw = document.getElementById('sf-fat').value;
+  const carbs = carbsRaw ? parseFloat(carbsRaw) : null;
+  const fat = fatRaw ? parseFloat(fatRaw) : null;
+  const note = document.getElementById('sf-note').value.trim();
+
+  if(!label || !kcal || !protein){
+    alert("Nom, kcal et protéines sont obligatoires.");
+    return;
+  }
+
+  const modeKey = getCurrentMode();
+  const data = loadModesData();
+  const key = editingStepKey || uid();
+  const existing = editingStepKey ? data[modeKey].steps[editingStepKey] : null;
+  data[modeKey].steps[key] = {
+    label, kcal, protein, carbs, fat, note,
+    meals: existing ? existing.meals : undefined
+  };
+  saveModesData(data);
+  setSelectedStep(modeKey, key);
+  hideStepForm();
+  renderMacros();
+});
+
+function deleteStep(modeKey, stepKey){
+  if(!confirm('Supprimer cette étape ?')) return;
+  const data = loadModesData();
+  delete data[modeKey].steps[stepKey];
+  saveModesData(data);
+  const sel = getSelectedSteps();
+  delete sel[modeKey];
+  localStorage.setItem(STORAGE_KEY_SELECTED_STEPS, JSON.stringify(sel));
+  renderMacros();
 }
 
 /* ============================================================
-   GÉNÉRATEUR DE RECETTES (Claude API + Vision)
+   CLÉ API / APPEL CLAUDE PARTAGÉ
    ============================================================ */
+function getApiKey(){
+  return localStorage.getItem(STORAGE_KEY_APIKEY) || '';
+}
+function setApiKey(v){
+  if(v) localStorage.setItem(STORAGE_KEY_APIKEY, v);
+  else localStorage.removeItem(STORAGE_KEY_APIKEY);
+}
 
-let yazioImageBase64 = null;
-let yazioImageMediaType = null;
+async function callClaude({ system, content, maxTokens = 1500 }){
+  const key = getApiKey();
+  if(!key){
+    throw new Error("Aucune clé API configurée — va dans l'onglet Réglages pour l'ajouter.");
+  }
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": key,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true"
+    },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: maxTokens,
+      system,
+      messages: [{ role: "user", content }]
+    })
+  });
 
+  if(!response.ok){
+    let detail = '';
+    try{
+      const errData = await response.json();
+      detail = errData?.error?.message || JSON.stringify(errData);
+    }catch(_){}
+    throw new Error(`${response.status}${detail ? ' — ' + detail : ''}`);
+  }
+
+  const data = await response.json();
+  const textBlocks = (data.content || []).filter(b => b.type === "text").map(b => b.text);
+  const fullText = textBlocks.join("\n").trim();
+  if(!fullText){
+    throw new Error("Réponse vide");
+  }
+  return fullText;
+}
+
+/* ============================================================
+   IMAGES (redimensionnement partagé)
+   ============================================================ */
 function resizeImageFile(file, maxDim = 1200, quality = 0.8){
   return new Promise((resolve, reject)=>{
     const img = new Image();
@@ -591,25 +969,29 @@ function resizeImageFile(file, maxDim = 1200, quality = 0.8){
   });
 }
 
-document.getElementById('rec-yazio-img').addEventListener('change', async (e)=>{
-  const file = e.target.files[0];
-  const preview = document.getElementById('yazio-preview');
-  if(!file){
-    yazioImageBase64 = null;
-    preview.innerHTML = '';
-    return;
-  }
-  preview.innerHTML = `<div class="loading"><div class="spinner"></div> Traitement de l'image...</div>`;
-  try{
-    const { dataUrl, mediaType } = await resizeImageFile(file);
-    yazioImageMediaType = mediaType;
-    yazioImageBase64 = dataUrl.split(',')[1];
-    preview.innerHTML = `<img src="${dataUrl}" style="max-width:200px;border-radius:10px;border:1px solid var(--border)">`;
-  }catch(err){
-    preview.innerHTML = `<div class="error-box">Impossible de lire cette image. Réessaie avec un autre fichier.</div>`;
-    yazioImageBase64 = null;
-  }
-});
+function setupImageInput(inputId, previewId, setter){
+  document.getElementById(inputId).addEventListener('change', async (e)=>{
+    const file = e.target.files[0];
+    const preview = document.getElementById(previewId);
+    if(!file){ setter(null); preview.innerHTML = ''; return; }
+    preview.innerHTML = `<div class="loading"><div class="spinner"></div> Traitement de l'image...</div>`;
+    try{
+      const { dataUrl, mediaType } = await resizeImageFile(file);
+      setter({ base64: dataUrl.split(',')[1], mediaType });
+      preview.innerHTML = `<img src="${dataUrl}" style="max-width:200px;border-radius:10px;border:1px solid var(--border)">`;
+    }catch(err){
+      preview.innerHTML = `<div class="error-box">Impossible de lire cette image. Réessaie avec un autre fichier.</div>`;
+      setter(null);
+    }
+  });
+}
+
+/* ============================================================
+   GÉNÉRATEUR DE RECETTES (Claude API + Vision, image facultative)
+   ============================================================ */
+
+let yazioImg = null; // {base64, mediaType} ou null
+setupImageInput('rec-yazio-img', 'yazio-preview', (v)=> yazioImg = v);
 
 document.getElementById('gen-recipe-btn').addEventListener('click', async ()=>{
   const btn = document.getElementById('gen-recipe-btn');
@@ -620,23 +1002,27 @@ document.getElementById('gen-recipe-btn').addEventListener('click', async ()=>{
   const targetKcal = parseFloat(document.getElementById('rec-kcal').value);
   const remarque = document.getElementById('rec-remarque').value.trim();
 
-  if(!yazioImageBase64){
-    resultBox.innerHTML = `<div class="error-box">Ajoute d'abord une capture d'écran Yazio.</div>`;
-    return;
-  }
   if(!targetKcal){
     resultBox.innerHTML = `<div class="error-box">Indique combien de kcal tu veux pour ce repas.</div>`;
     return;
   }
 
-  btn.disabled = true;
-  resultBox.innerHTML = `<div class="loading"><div class="spinner"></div> Lecture de Yazio et génération des recettes...</div>`;
+  const step = getSelectedStepData();
+  const hasImage = !!yazioImg;
 
-  const systemPrompt = `Tu es un coach nutrition francophone pour un pratiquant de musculation en séche.
-On te donne une capture d'écran de l'app Yazio montrant ce qu'il reste à consommer sur la journée (kcal, protéines, glucides, lipides restants). Utilise ces chiffres restants comme référence pour les macros disponibles.
+  const dailyTargetsLine = step
+    ? `Objectifs journaliers actuels du client (mode "${getModeLabel()}", ${step.label}) : ${step.kcal} kcal, ${step.protein}g protéines${step.carbs != null ? `, ${step.carbs}g glucides` : ''}${step.fat != null ? `, ${step.fat}g lipides` : ''}.`
+    : '';
+
+  const macroGuidance = hasImage
+    ? `Une capture d'écran Yazio est fournie et montre ce qu'il reste à consommer aujourd'hui (kcal/protéines/glucides/lipides restants). Utilise ces valeurs restantes en priorité pour calibrer les macros de ce repas (par exemple si ce repas représente environ la moitié du reste de la journée, vise environ la moitié des macros restantes, proportionnellement).`
+    : `Aucune capture d'écran n'est fournie. Base-toi uniquement sur les ${targetKcal} kcal indiquées pour ce repas${step ? " et sur les objectifs journaliers ci-dessus" : ''} pour répartir les macros de façon cohérente et raisonnable (protéines en priorité, environ 25-30% des kcal du repas en lipides, le reste en glucides).`;
+
+  const systemPrompt = `Tu es un coach nutrition francophone pour un pratiquant de musculation.
+${dailyTargetsLine}
 
 Le client veut une recette de ${meal} d'environ ${targetKcal} kcal (tolérance +/- 50 kcal).
-Répartis les protéines/glucides/lipides de façon cohérente avec ce qu'il reste dans Yazio pour cette part de kcal (par exemple si ce repas représente environ la moitié du reste de la journée, vise environ la moitié des macros restantes, proportionnellement).
+${macroGuidance}
 
 Contraintes :
 - Budget : ${budget}
@@ -670,43 +1056,19 @@ PROPOSITION 3 — NOM DU PLAT
 
 Pas d'introduction, pas de conclusion, pas de conseils supplémentaires, pas de note en fin de réponse — uniquement les 3 propositions dans ce format exact.`;
 
+  const contentBlocks = [];
+  if(hasImage){
+    contentBlocks.push({ type: "image", source: { type: "base64", media_type: yazioImg.mediaType, data: yazioImg.base64 } });
+    contentBlocks.push({ type: "text", text: `Voici mon écran Yazio du jour. Génère-moi 3 propositions de recette de ${meal} d'environ ${targetKcal} kcal.` });
+  } else {
+    contentBlocks.push({ type: "text", text: `Je n'ai pas de capture d'écran Yazio. Génère-moi 3 propositions de recette de ${meal} d'environ ${targetKcal} kcal.` });
+  }
+
+  btn.disabled = true;
+  resultBox.innerHTML = `<div class="loading"><div class="spinner"></div> Génération des recettes...</div>`;
+
   try{
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 1800,
-        system: systemPrompt,
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "image", source: { type: "base64", media_type: yazioImageMediaType, data: yazioImageBase64 } },
-              { type: "text", text: `Voici mon écran Yazio du jour. Génère-moi 3 propositions de recette de ${meal} d'environ ${targetKcal} kcal.` }
-            ]
-          }
-        ],
-      })
-    });
-
-    if(!response.ok){
-      let detail = '';
-      try{
-        const errData = await response.json();
-        detail = errData?.error?.message || JSON.stringify(errData);
-      }catch(_){}
-      throw new Error(`${response.status}${detail ? ' — ' + detail : ''}`);
-    }
-
-    const data = await response.json();
-    const textBlocks = (data.content || []).filter(b => b.type === "text").map(b => b.text);
-    const fullText = textBlocks.join("\n").trim();
-
-    if(!fullText){
-      throw new Error("Réponse vide");
-    }
-
+    const fullText = await callClaude({ system: systemPrompt, content: contentBlocks, maxTokens: 1800 });
     resultBox.innerHTML = `<div class="recipe-output">${escapeHtml(fullText)}</div>`;
   }catch(err){
     resultBox.innerHTML = `<div class="error-box">Erreur lors de la génération : ${escapeHtml(err.message)}. Réessaie.</div>`;
@@ -715,129 +1077,194 @@ Pas d'introduction, pas de conclusion, pas de conseils supplémentaires, pas de 
   }
 });
 
-function escapeHtml(str){
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
-
 /* ============================================================
-   BILAN HEBDOMADAIRE POIDS (Claude API + Vision)
+   BILAN HEBDOMADAIRE POIDS
+   Un seul screenshot par semaine : l'IA lit les valeurs et calcule
+   la moyenne, qui est stockée avec sa date puis comparée à la
+   dernière moyenne enregistrée précédemment.
    ============================================================ */
 
-let weightImgCurrent = null; // {base64, mediaType}
-let weightImgPrevious = null;
+let weightImg = null; // {base64, mediaType} ou null
+setupImageInput('weight-img', 'weight-preview', (v)=> weightImg = v);
 
-function setupWeightImageInput(inputId, previewId, setter){
-  document.getElementById(inputId).addEventListener('change', async (e)=>{
-    const file = e.target.files[0];
-    const preview = document.getElementById(previewId);
-    if(!file){ setter(null); preview.innerHTML = ''; return; }
-    preview.innerHTML = `<div class="loading"><div class="spinner"></div> Traitement de l'image...</div>`;
-    try{
-      const { dataUrl, mediaType } = await resizeImageFile(file);
-      setter({ base64: dataUrl.split(',')[1], mediaType });
-      preview.innerHTML = `<img src="${dataUrl}" style="max-width:200px;border-radius:10px;border:1px solid var(--border)">`;
-    }catch(err){
-      preview.innerHTML = `<div class="error-box">Impossible de lire cette image. Réessaie avec un autre fichier.</div>`;
-      setter(null);
-    }
-  });
+function getWeightHistory(){
+  try{ return JSON.parse(localStorage.getItem(STORAGE_KEY_WEIGHTS)) || []; }catch(_){ return []; }
+}
+function saveWeightHistory(hist){
+  localStorage.setItem(STORAGE_KEY_WEIGHTS, JSON.stringify(hist));
+}
+function addWeightEntry(average, source){
+  const hist = getWeightHistory();
+  const entry = { id: uid(), date: todayISO(), average: Math.round(average * 10) / 10, source };
+  hist.push(entry);
+  hist.sort((a, b)=> a.date.localeCompare(b.date));
+  saveWeightHistory(hist);
+  return entry;
+}
+function deleteWeightEntry(id){
+  if(!confirm('Supprimer cette entrée ?')) return;
+  saveWeightHistory(getWeightHistory().filter(e=> e.id !== id));
+  renderWeightHistory();
 }
 
-setupWeightImageInput('weight-img-current', 'weight-preview-current', (v)=> weightImgCurrent = v);
-setupWeightImageInput('weight-img-previous', 'weight-preview-previous', (v)=> weightImgPrevious = v);
+function renderWeightHistory(){
+  const hist = getWeightHistory();
+  const box = document.getElementById('weight-history');
+  if(!hist.length){
+    box.innerHTML = `<div class="weight-empty">Aucune mesure enregistrée pour l'instant.</div>`;
+    return;
+  }
+  const reversed = [...hist].reverse();
+  const rows = reversed.map((e, idx)=>{
+    const prev = reversed[idx + 1]; // suivant dans la liste inversée = précédent dans le temps
+    const diff = prev ? Math.round((e.average - prev.average) * 10) / 10 : null;
+    const diffLabel = diff === null ? '—' : `${diff > 0 ? '+' : ''}${diff} kg`;
+    return `<tr>
+      <td>${fmtDate(e.date)}</td>
+      <td class="num">${e.average} kg</td>
+      <td class="num">${diffLabel}</td>
+      <td class="num"><button class="del-btn" data-id="${e.id}">✕</button></td>
+    </tr>`;
+  }).join('');
+  box.innerHTML = `<table>
+    <thead><tr><th>Date</th><th class="num">Moyenne</th><th class="num">Δ vs préc.</th><th></th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+  box.querySelectorAll('.del-btn').forEach(b=> b.addEventListener('click', ()=> deleteWeightEntry(b.dataset.id)));
+}
 
-document.getElementById('gen-weight-analysis-btn').addEventListener('click', async ()=>{
-  const btn = document.getElementById('gen-weight-analysis-btn');
+function evaluateWeightEntry(entry){
+  const hist = getWeightHistory();
+  const idx = hist.findIndex(e=> e.id === entry.id);
+  const prev = idx > 0 ? hist[idx - 1] : null;
   const resultBox = document.getElementById('weight-analysis-result');
 
-  if(!weightImgCurrent || !weightImgPrevious){
-    resultBox.innerHTML = `<div class="error-box">Ajoute les deux screens (semaine actuelle et semaine précédente).</div>`;
+  if(!prev){
+    resultBox.innerHTML = `<div class="recipe-output">Moyenne enregistrée : ${entry.average} kg (${fmtDate(entry.date)}).\n\nPremière mesure enregistrée — reviens la semaine prochaine pour avoir une comparaison et une recommandation de palier.</div>`;
     return;
   }
 
-  const current = getCurrentPalier();
-  const p = PALIERS[current];
+  const diff = Math.round((entry.average - prev.average) * 100) / 100;
+  const lostEnough = diff <= -0.2;
+
+  const modeKey = getCurrentMode();
+  const data = loadModesData();
+  const stepKeys = Object.keys(data[modeKey].steps);
+  const currentStepKey = getSelectedStepKey(modeKey);
+  const currentIdx = stepKeys.indexOf(currentStepKey);
+  const nextStepKey = (!lostEnough && currentIdx !== -1 && currentIdx < stepKeys.length - 1) ? stepKeys[currentIdx + 1] : null;
+
+  let text = `Moyenne semaine actuelle (${fmtDate(entry.date)}) : ${entry.average} kg\nMoyenne semaine précédente (${fmtDate(prev.date)}) : ${prev.average} kg\nDifférence : ${diff > 0 ? '+' : ''}${diff} kg\n\n`;
+  if(lostEnough){
+    text += `Recommandation : Rester sur le palier actuel.\nJustification : la moyenne a baissé d'au moins 200g par rapport à la semaine précédente.`;
+  } else {
+    text += `Recommandation : Passer au palier suivant${nextStepKey ? ' (' + data[modeKey].steps[nextStepKey].label + ')' : ''}.\nJustification : la moyenne n'a pas baissé d'au moins 200g par rapport à la semaine précédente.`;
+  }
+  resultBox.innerHTML = `<div class="recipe-output">${escapeHtml(text)}</div>`;
+
+  if(nextStepKey){
+    const advanceBtn = document.createElement('button');
+    advanceBtn.className = 'btn secondary';
+    advanceBtn.style.marginTop = '10px';
+    advanceBtn.textContent = `Passer à ${data[modeKey].steps[nextStepKey].label}`;
+    advanceBtn.addEventListener('click', ()=>{
+      setSelectedStep(modeKey, nextStepKey);
+      renderMacros();
+      advanceBtn.textContent = '✓ Palier mis à jour';
+      advanceBtn.disabled = true;
+    });
+    resultBox.appendChild(advanceBtn);
+  }
+}
+
+document.getElementById('analyze-weight-btn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('analyze-weight-btn');
+  const resultBox = document.getElementById('weight-analysis-result');
+
+  if(!weightImg){
+    resultBox.innerHTML = `<div class="error-box">Ajoute d'abord une capture d'écran de tes pesées.</div>`;
+    return;
+  }
 
   btn.disabled = true;
-  resultBox.innerHTML = `<div class="loading"><div class="spinner"></div> Analyse des pesées en cours...</div>`;
+  resultBox.innerHTML = `<div class="loading"><div class="spinner"></div> Lecture des pesées...</div>`;
 
-  const systemPrompt = `Tu es un coach en musculation/séche francophone. On te donne deux captures d'écran d'une app de suivi de poids : la première montre les pesées de la semaine actuelle, la seconde celles de la semaine précédente.
+  const systemPrompt = `Tu es un assistant qui lit des captures d'écran d'applications de suivi de poids.
+On te donne une capture d'écran montrant un graphique ou une liste de pesées pour une semaine.
+Lis toutes les valeurs de poids visibles sur cette semaine et calcule leur moyenne.
 
-Le client est actuellement au ${p.label} de son plan de séche (${p.kcal} kcal/jour, ${p.protein}g de protéines).
+Réponds UNIQUEMENT avec un objet JSON valide, rien d'autre, de la forme exacte :
+{"average": 81.4, "count": 6, "values": [82.1, 81.8, 81.5, 81.2, 81.0, 80.8]}
 
-Règle de décision du plan : on passe au palier suivant (réduction des kcal) si la perte de poids sur la semaine est insuffisante (moyenne de la semaine quasi stable ou baisse inférieure à 200g par rapport à la moyenne de la semaine précédente). Si la moyenne a bien baissé (200g ou plus), on reste sur le palier actuel.
-
-Étapes :
-1. Lis les valeurs de poids visibles sur chaque capture.
-2. Calcule la moyenne de la semaine actuelle et la moyenne de la semaine précédente.
-3. Calcule la différence entre les deux moyennes.
-4. Applique la règle de décision ci-dessus.
-
-Réponds UNIQUEMENT en français, de façon concise, avec ce format exact et rien d'autre :
-
-Moyenne semaine actuelle : X kg
-Moyenne semaine précédente : X kg
-Différence : X kg
-
-Recommandation : [Passer au palier suivant / Rester sur le palier actuel]
-
-Justification : [une phrase courte expliquant pourquoi, basée sur la différence calculée]`;
+"average" est la moyenne arrondie à une décimale, "count" le nombre de pesées lues, "values" la liste des valeurs lues (dans l'ordre du graphique). Pas de texte avant ou après le JSON.`;
 
   try{
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 500,
-        system: systemPrompt,
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "text", text: "Capture 1 — semaine actuelle :" },
-              { type: "image", source: { type: "base64", media_type: weightImgCurrent.mediaType, data: weightImgCurrent.base64 } },
-              { type: "text", text: "Capture 2 — semaine précédente :" },
-              { type: "image", source: { type: "base64", media_type: weightImgPrevious.mediaType, data: weightImgPrevious.base64 } },
-              { type: "text", text: "Analyse ces deux semaines et donne-moi ta recommandation." }
-            ]
-          }
-        ],
-      })
+    const fullText = await callClaude({
+      system: systemPrompt,
+      content: [
+        { type: "image", source: { type: "base64", media_type: weightImg.mediaType, data: weightImg.base64 } },
+        { type: "text", text: "Lis les pesées de cette semaine et calcule la moyenne." }
+      ],
+      maxTokens: 400
     });
 
-    if(!response.ok){
-      let detail = '';
-      try{
-        const errData = await response.json();
-        detail = errData?.error?.message || JSON.stringify(errData);
-      }catch(_){}
-      throw new Error(`${response.status}${detail ? ' — ' + detail : ''}`);
-    }
+    const jsonMatch = fullText.match(/\{[\s\S]*\}/);
+    if(!jsonMatch) throw new Error("Réponse inattendue de l'IA (pas de JSON).");
+    const parsed = JSON.parse(jsonMatch[0]);
+    if(typeof parsed.average !== 'number') throw new Error("Impossible de lire une moyenne dans la réponse.");
 
-    const data = await response.json();
-    const textBlocks = (data.content || []).filter(b => b.type === "text").map(b => b.text);
-    const fullText = textBlocks.join("\n").trim();
-
-    if(!fullText){
-      throw new Error("Réponse vide");
-    }
-
-    resultBox.innerHTML = `<div class="recipe-output">${escapeHtml(fullText)}</div>`;
+    const entry = addWeightEntry(parsed.average, 'ai');
+    renderWeightHistory();
+    evaluateWeightEntry(entry);
   }catch(err){
-    resultBox.innerHTML = `<div class="error-box">Erreur lors de l'analyse : ${escapeHtml(err.message)}. Réessaie.</div>`;
+    resultBox.innerHTML = `<div class="error-box">Erreur lors de l'analyse : ${escapeHtml(err.message)}. Réessaie, ou saisis la moyenne manuellement ci-dessous.</div>`;
   }finally{
     btn.disabled = false;
   }
 });
 
+document.getElementById('manual-avg-btn').addEventListener('click', ()=>{
+  const val = parseFloat(document.getElementById('manual-avg-input').value);
+  if(!val){ alert('Indique une moyenne valide.'); return; }
+  const entry = addWeightEntry(val, 'manuel');
+  document.getElementById('manual-avg-input').value = '';
+  renderWeightHistory();
+  evaluateWeightEntry(entry);
+});
+
+/* ============================================================
+   RÉGLAGES — CLÉ API
+   ============================================================ */
+function refreshKeyStatus(){
+  const status = document.getElementById('key-status');
+  const key = getApiKey();
+  status.textContent = key ? `Clé enregistrée (se termine par ...${key.slice(-4)}).` : "Aucune clé enregistrée.";
+}
+document.getElementById('save-key-btn').addEventListener('click', ()=>{
+  const val = document.getElementById('api-key-input').value.trim();
+  if(!val){ alert("Colle ta clé API avant d'enregistrer."); return; }
+  setApiKey(val);
+  document.getElementById('api-key-input').value = '';
+  refreshKeyStatus();
+});
+document.getElementById('clear-key-btn').addEventListener('click', ()=>{
+  if(!confirm('Effacer la clé API enregistrée ?')) return;
+  setApiKey('');
+  refreshKeyStatus();
+});
+document.getElementById('toggle-key-visibility').addEventListener('click', ()=>{
+  const input = document.getElementById('api-key-input');
+  input.type = input.type === 'password' ? 'text' : 'password';
+});
+
 /* ============================================================
    INIT
    ============================================================ */
+migrateLegacyPalier();
 renderCycle();
 renderMacros();
+renderWeightHistory();
+refreshKeyStatus();
 </script>
 </body>
 </html>
