@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Musculation">
@@ -32,7 +32,7 @@
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   [hidden]{display:none !important;}
-  html,body{height:100%;}
+  html,body{height:100%;height:100dvh;}
   body{
     margin:0;
     background:var(--bg);
@@ -375,12 +375,31 @@
   .tag.drop{background:rgba(255,182,72,.14);color:var(--warn);}
   .ex-note{font-size:.74rem;color:var(--muted);line-height:1.45;margin-top:9px;padding-left:11px;border-left:2px solid var(--border);}
 
+  /* ---------- Meal ingredient rows ---------- */
+  .ing-name, .ring-name{
+    flex:1;background:var(--panel);border:1px solid var(--border);border-radius:8px;
+    padding:8px 10px;font-size:.85rem;color:var(--text);font-family:var(--body);
+  }
+  .ing-row .field{margin-bottom:0;}
+  .ing-row .grid2, .ing-row .grid3{margin-top:8px;}
+  .ing-total{font-size:.74rem;color:var(--muted);margin-top:9px;}
+
+  /* ---------- Recettes ---------- */
+  .prep-list{margin:0;padding-left:19px;font-size:.85rem;line-height:1.7;color:var(--text);}
+  .prep-list li{margin-bottom:4px;}
+  .recipe-card{cursor:pointer;}
+
   /* ---------- Session card ---------- */
   .sess-head{
     display:flex;align-items:center;gap:10px;margin-bottom:4px;
   }
   .sess-title{font-family:var(--display);font-weight:700;font-size:1rem;flex:1;letter-spacing:-.01em;}
   .sess-prio{font-size:.73rem;color:var(--muted);line-height:1.4;margin-bottom:12px;}
+  .sess-preview{
+    font-size:.78rem;color:var(--muted);line-height:1.5;margin-bottom:2px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .sess-back{margin-bottom:12px;}
   .sess-rest{
     display:flex;gap:6px;margin-bottom:13px;
   }
@@ -521,7 +540,7 @@
     </div>
 
     <div class="subscreen" id="sub-seances">
-      <div class="card">
+      <div class="card" id="sess-list-head">
         <div class="card-head">
           <h2>Mes séances</h2>
           <button class="help-btn" data-help="h-sess">?</button>
@@ -581,56 +600,11 @@
         <div class="btn-row" style="margin-top:12px" id="step-actions"></div>
       </div>
       <div id="macro-view"></div>
+      <div id="meal-blocks"></div>
     </div>
 
     <div class="subscreen" id="sub-recettes">
-      <div class="card">
-        <div class="card-head">
-          <h2>Générateur de recettes</h2>
-          <button class="help-btn" data-help="h-rec">?</button>
-        </div>
-        <div class="help-text" id="h-rec" hidden>
-          Indique les kcal voulues pour le repas. La capture Yazio est facultative : avec elle, les macros sont calées sur ce qu'il te reste sur la journée. Sans elle, le calcul part de tes objectifs journaliers.
-        </div>
-        <div id="rec-key-warn"></div>
-        <div class="field">
-          <label>Kcal pour ce repas</label>
-          <input type="number" id="rec-kcal" placeholder="650" inputmode="numeric">
-        </div>
-        <div class="grid2">
-          <div class="field">
-            <label>Repas</label>
-            <select id="rec-meal"><option value="déjeuner">Déjeuner</option><option value="dîner">Dîner</option></select>
-          </div>
-          <div class="field">
-            <label>Temps max</label>
-            <select id="rec-temps">
-              <option value="15 minutes">15 min</option>
-              <option value="30 minutes" selected>30 min</option>
-              <option value="45 minutes ou plus">45 min +</option>
-            </select>
-          </div>
-        </div>
-        <div class="field">
-          <label>Budget</label>
-          <select id="rec-budget">
-            <option value="serré, ingrédients basiques et peu chers">Serré</option>
-            <option value="moyen" selected>Moyen</option>
-            <option value="sans contrainte de prix">Peu importe</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Capture Yazio (facultatif)</label>
-          <input type="file" id="rec-img" accept="image/*">
-          <div id="rec-img-prev"></div>
-        </div>
-        <div class="field">
-          <label>Remarque (facultatif)</label>
-          <textarea id="rec-note" placeholder="J'ai déjà du poulet, pas envie de riz..."></textarea>
-        </div>
-        <button class="btn block" id="gen-rec">Générer 3 recettes</button>
-        <div id="rec-out"></div>
-      </div>
+      <div id="recettes-view"></div>
     </div>
 
     <div class="subscreen" id="sub-poids">
@@ -643,7 +617,6 @@
           Envoie une capture de tes pesées de la semaine : la moyenne est calculée, enregistrée avec la date, puis comparée automatiquement à la dernière moyenne enregistrée.<br><br>
           Règle appliquée : si la moyenne n'a pas baissé d'au moins 200 g, il est temps de passer au palier suivant.
         </div>
-        <div id="poids-key-warn"></div>
         <div class="field">
           <label>Capture des pesées</label>
           <input type="file" id="w-img" accept="image/*">
@@ -675,7 +648,6 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
       </button>
     </div>
-    <div id="coach-key-warn"></div>
     <div class="msgs" id="msgs"></div>
     <div class="composer">
       <textarea id="chat-input" placeholder="Pose ta question..." rows="1"></textarea>
@@ -842,6 +814,7 @@ const DEFAULT_PROFILE = {
   objectif:'Physique athlétique et musclé',
   faibles:'Pectoraux, Fessiers, Ischio-jambiers',
   forts:'Bras, Épaules, Largeur de dos',
+  adjustMaxPercent:25,
 };
 
 const MODES = {
@@ -893,6 +866,7 @@ const K = {
   model:'coach_fitness_model',
   sessions:'coach_fitness_sessions',
   volume:'coach_fitness_volume',
+  recipes:'coach_fitness_recipes',
   profile:'coach_fitness_profile',
   convs:'coach_fitness_convs',
   curConv:'coach_fitness_cur_conv',
@@ -910,6 +884,8 @@ function getVolume(){ return ls(K.volume, null) || JSON.parse(JSON.stringify(DEF
 function setVolume(v){ save(K.volume, v); }
 function getProfile(){ return Object.assign({}, DEFAULT_PROFILE, ls(K.profile, {})); }
 function setProfile(v){ save(K.profile, v); }
+function getRecipes(){ return ls(K.recipes, []); }
+function setRecipes(v){ save(K.recipes, v); }
 function getApiKey(){ return localStorage.getItem(K.key) || ''; }
 function setApiKey(v){ v ? localStorage.setItem(K.key, v) : localStorage.removeItem(K.key); }
 function getModel(){ return localStorage.getItem(K.model) || 'claude-sonnet-5'; }
@@ -1142,45 +1118,76 @@ document.getElementById('ics-all').addEventListener('click', ()=>{
 /* ==========================================================
    7. SÉANCES
    ========================================================== */
+let openSessionIdx = null;
+
+function sessionCardHTML(s, si){
+  const names = s.ex.map(e=>e.name).filter(Boolean).join(', ');
+  return '<div class="card">' +
+    '<div class="sess-head"><span class="sess-title">'+esc(s.name)+'</span>' +
+    '<button class="icon-btn sess-edit" data-s="'+si+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></div>' +
+    (s.priority ? '<div class="sess-prio">'+esc(s.priority)+'</div>' : '') +
+    (names ? '<div class="sess-preview">'+esc(names)+'</div>' : '') +
+    '<button class="btn block sm sess-open" data-s="'+si+'" style="margin-top:10px">Accéder à la séance</button>' +
+    '</div>';
+}
+
+function sessionDetailHTML(s, si, cur){
+  const exs = s.ex.map((e, i)=>{
+    const tags = [];
+    if(e.ss) tags.push('<span class="tag ss">SS ' + (e.ss === 'down' ? '↓' : '↑') + '</span>');
+    if(e.drop) tags.push('<span class="tag drop">DROP</span>');
+    const sets = PH_KEYS.map(k=>
+      '<div class="ex-set '+(k===cur?'now':'')+'"><div class="p">'+PH_SHORT[k]+'</div><div class="v">'+esc(e[k]||'—')+'</div></div>'
+    ).join('');
+    return '<div class="ex">' +
+      '<div class="ex-top"><span class="ex-idx">'+(i+1)+'</span><span class="ex-name">'+esc(e.name)+'</span>' +
+      '<button class="icon-btn ex-edit" data-s="'+si+'" data-e="'+i+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></div>' +
+      '<div class="ex-sets">'+sets+'</div>' +
+      (tags.length ? '<div class="ex-tags">'+tags.join('')+'</div>' : '') +
+      (e.note ? '<div class="ex-note">'+esc(e.note)+'</div>' : '') +
+      '</div>';
+  }).join('');
+
+  const rest = PH_KEYS.map(k=>'<div><div class="p">'+PH_SHORT[k]+'</div><div class="v">'+esc(s.rest[k]||'—')+'</div></div>').join('');
+
+  return '<button class="btn ghost sm sess-back">← Toutes les séances</button>' +
+    '<div class="card">' +
+    '<div class="sess-head"><span class="sess-title">'+esc(s.name)+'</span>' +
+    '<button class="icon-btn sess-edit" data-s="'+si+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></div>' +
+    '<div class="sess-prio">'+esc(s.priority)+'</div>' +
+    '<div class="sess-rest">'+rest+'</div>' +
+    exs +
+    '<button class="btn sec sm block ex-add" data-s="'+si+'" style="margin-top:10px">+ Exercice</button>' +
+    '</div>';
+}
+
 function renderSessions(){
   const sessions = getSessions();
   const cur = curPhaseKey();
   const box = document.getElementById('sessions');
+  const listHead = document.getElementById('sess-list-head');
 
   if(!sessions.length){
+    openSessionIdx = null;
+    if(listHead) listHead.hidden = false;
     box.innerHTML = '<div class="card"><div class="empty">Aucune séance. Ajoute-en une ou restaure le programme d\'origine.</div></div>';
     return;
   }
 
-  box.innerHTML = sessions.map((s, si)=>{
-    const exs = s.ex.map((e, i)=>{
-      const tags = [];
-      if(e.ss) tags.push('<span class="tag ss">SS ' + (e.ss === 'down' ? '↓' : '↑') + '</span>');
-      if(e.drop) tags.push('<span class="tag drop">DROP</span>');
-      const sets = PH_KEYS.map(k=>
-        '<div class="ex-set '+(k===cur?'now':'')+'"><div class="p">'+PH_SHORT[k]+'</div><div class="v">'+esc(e[k]||'—')+'</div></div>'
-      ).join('');
-      return '<div class="ex">' +
-        '<div class="ex-top"><span class="ex-idx">'+(i+1)+'</span><span class="ex-name">'+esc(e.name)+'</span>' +
-        '<button class="icon-btn ex-edit" data-s="'+si+'" data-e="'+i+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></div>' +
-        '<div class="ex-sets">'+sets+'</div>' +
-        (tags.length ? '<div class="ex-tags">'+tags.join('')+'</div>' : '') +
-        (e.note ? '<div class="ex-note">'+esc(e.note)+'</div>' : '') +
-        '</div>';
-    }).join('');
+  if(openSessionIdx !== null && openSessionIdx >= sessions.length) openSessionIdx = null;
 
-    const rest = PH_KEYS.map(k=>'<div><div class="p">'+PH_SHORT[k]+'</div><div class="v">'+esc(s.rest[k]||'—')+'</div></div>').join('');
+  if(openSessionIdx === null){
+    if(listHead) listHead.hidden = false;
+    box.innerHTML = sessions.map((s, si)=> sessionCardHTML(s, si)).join('');
+    box.querySelectorAll('.sess-open').forEach(b=> b.addEventListener('click', ()=>{ openSessionIdx = +b.dataset.s; renderSessions(); }));
+    box.querySelectorAll('.sess-edit').forEach(b=> b.addEventListener('click', ()=> editSession(+b.dataset.s)));
+    return;
+  }
 
-    return '<div class="card">' +
-      '<div class="sess-head"><span class="sess-title">'+esc(s.name)+'</span>' +
-      '<button class="icon-btn sess-edit" data-s="'+si+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></div>' +
-      '<div class="sess-prio">'+esc(s.priority)+'</div>' +
-      '<div class="sess-rest">'+rest+'</div>' +
-      exs +
-      '<button class="btn sec sm block ex-add" data-s="'+si+'" style="margin-top:10px">+ Exercice</button>' +
-      '</div>';
-  }).join('');
-
+  if(listHead) listHead.hidden = true;
+  const si = openSessionIdx;
+  box.innerHTML = sessionDetailHTML(sessions[si], si, cur);
+  box.querySelector('.sess-back').addEventListener('click', ()=>{ openSessionIdx = null; renderSessions(); });
   box.querySelectorAll('.ex-edit').forEach(b=> b.addEventListener('click', ()=> editExercise(+b.dataset.s, +b.dataset.e)));
   box.querySelectorAll('.ex-add').forEach(b=> b.addEventListener('click', ()=> editExercise(+b.dataset.s, -1)));
   box.querySelectorAll('.sess-edit').forEach(b=> b.addEventListener('click', ()=> editSession(+b.dataset.s)));
@@ -1361,7 +1368,11 @@ function renderMacros(){
   if(cur) document.getElementById('step-edit').addEventListener('click', ()=> editStep(cur));
 
   const view = document.getElementById('macro-view');
-  if(!cur){ view.innerHTML = '<div class="card"><div class="empty">Ajoute une première étape pour ce mode.</div></div>'; return; }
+  if(!cur){
+    view.innerHTML = '<div class="card"><div class="empty">Ajoute une première étape pour ce mode.</div></div>';
+    renderMealBlocks(m, null);
+    return;
+  }
   const s = steps[cur];
   view.innerHTML = '<div class="card">' +
     '<div class="card-head"><h2>'+esc(s.label)+'</h2></div>' +
@@ -1373,6 +1384,7 @@ function renderMacros(){
     '</div>' +
     (s.note ? '<p class="small muted" style="margin:14px 0 0">'+esc(s.note)+'</p>' : '') +
     '</div>';
+  renderMealBlocks(m, cur);
 }
 
 function editStep(key){
@@ -1413,19 +1425,136 @@ function editStep(key){
 }
 
 /* ==========================================================
-   10. API CLAUDE
+   9b. REPAS FIXES (Petit-déjeuner / Shaker)
    ========================================================== */
-function keyWarn(){
-  return '<div class="notice">Une clé API Claude est nécessaire pour cette fonction.' +
-    '<button class="btn sm" onclick="openSettings()">Configurer</button></div>';
+const MEALS = {
+  petitDej: {icon:'🍳', label:'Petit-déjeuner'},
+  shaker: {icon:'🥤', label:'Shaker'},
+};
+
+function ensureMeals(step){
+  if(!step.meals) step.meals = {};
+  Object.keys(MEALS).forEach(k=>{ if(!step.meals[k]) step.meals[k] = []; });
+  return step.meals;
 }
-function refreshKeyWarns(){
-  const has = !!getApiKey();
-  ['rec-key-warn','poids-key-warn','coach-key-warn'].forEach(id=>{
-    document.getElementById(id).innerHTML = has ? '' : keyWarn();
+function mealIngredients(m, stepKey, meal){
+  const step = getModes()[m].steps[stepKey];
+  return step ? ensureMeals(step)[meal] : [];
+}
+function setMealIngredients(m, stepKey, meal, list){
+  const d = getModes();
+  const step = d[m].steps[stepKey];
+  if(!step) return;
+  ensureMeals(step)[meal] = list;
+  setModes(d);
+}
+function ingredientTotals(list){
+  return list.reduce((t, i)=>{
+    const g = parseFloat(i.grams) || 0;
+    t.kcal += (parseFloat(i.kcal100) || 0) * g / 100;
+    t.protein += (parseFloat(i.protein100) || 0) * g / 100;
+    t.carbs += (parseFloat(i.carbs100) || 0) * g / 100;
+    t.fat += (parseFloat(i.fat100) || 0) * g / 100;
+    return t;
+  }, {kcal:0, protein:0, carbs:0, fat:0});
+}
+
+function renderMealBlocks(m, curKey){
+  const box = document.getElementById('meal-blocks');
+  if(!curKey){ box.innerHTML = ''; return; }
+  box.innerHTML = Object.keys(MEALS).map(mk=>{
+    const list = mealIngredients(m, curKey, mk);
+    const t = ingredientTotals(list);
+    const preview = list.length
+      ? Math.round(t.kcal) + ' kcal · ' + list.length + ' ingrédient' + (list.length > 1 ? 's' : '')
+      : 'Aucun ingrédient enregistré';
+    return '<div class="card">' +
+      '<div class="sess-head"><span class="sess-title">' + MEALS[mk].icon + ' ' + MEALS[mk].label + '</span></div>' +
+      '<div class="small muted">' + esc(preview) + '</div>' +
+      '<button class="btn sec sm block meal-open" data-meal="' + mk + '" style="margin-top:10px">Voir / modifier</button>' +
+      '</div>';
+  }).join('');
+  box.querySelectorAll('.meal-open').forEach(b=> b.addEventListener('click', ()=> openMealSheet(b.dataset.meal, curKey)));
+}
+
+function openMealSheet(meal, viewStepKey){
+  const m = curMode(), d = getModes(), keys = Object.keys(d[m].steps);
+  const list = mealIngredients(m, viewStepKey, meal);
+  const t = ingredientTotals(list);
+
+  const stepChips = keys.map(k=>
+    '<div class="chip '+(k===viewStepKey?'on':'')+'" data-s="'+k+'">'+esc(d[m].steps[k].label)+'</div>'
+  ).join('');
+
+  const rows = list.map((ing, i)=>
+    '<div class="ex ing-row" data-i="'+i+'">' +
+      '<div class="ex-top">' +
+        '<input class="ing-name" data-i="'+i+'" data-f="name" value="'+esc(ing.name)+'" placeholder="Nom de l\'ingrédient">' +
+        '<button class="icon-btn danger ing-del" data-i="'+i+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>' +
+      '</div>' +
+      '<div class="grid2">' +
+        '<div class="field"><label>Grammes</label><input type="number" inputmode="numeric" data-i="'+i+'" data-f="grams" value="'+(ing.grams||'')+'"></div>' +
+        '<div class="field"><label>Kcal /100g</label><input type="number" inputmode="decimal" data-i="'+i+'" data-f="kcal100" value="'+(ing.kcal100||'')+'"></div>' +
+      '</div>' +
+      '<div class="grid3">' +
+        '<div class="field"><label>Prot /100g</label><input type="number" inputmode="decimal" data-i="'+i+'" data-f="protein100" value="'+(ing.protein100||'')+'"></div>' +
+        '<div class="field"><label>Gluc /100g</label><input type="number" inputmode="decimal" data-i="'+i+'" data-f="carbs100" value="'+(ing.carbs100||'')+'"></div>' +
+        '<div class="field"><label>Lip /100g</label><input type="number" inputmode="decimal" data-i="'+i+'" data-f="fat100" value="'+(ing.fat100||'')+'"></div>' +
+      '</div>' +
+      '<div class="ing-total">→ '+Math.round((parseFloat(ing.kcal100)||0)*(parseFloat(ing.grams)||0)/100)+' kcal · '+
+        Math.round((parseFloat(ing.protein100)||0)*(parseFloat(ing.grams)||0)/100)+'g P · '+
+        Math.round((parseFloat(ing.carbs100)||0)*(parseFloat(ing.grams)||0)/100)+'g G · '+
+        Math.round((parseFloat(ing.fat100)||0)*(parseFloat(ing.grams)||0)/100)+'g L</div>' +
+    '</div>'
+  ).join('');
+
+  openSheet(
+    sheetHead(MEALS[meal].icon + ' ' + MEALS[meal].label) +
+    (keys.length > 1 ? '<div class="chips" style="margin-bottom:14px">'+stepChips+'</div>' : '') +
+    (list.length ? rows : '<div class="empty">Aucun ingrédient. Ajoute le premier ci-dessous.</div>') +
+    '<button class="btn sec sm block" id="ing-add" style="margin:4px 0 16px">+ Ingrédient</button>' +
+    '<div class="stats">' +
+      '<div class="stat"><div class="v">'+Math.round(t.kcal)+'</div><div class="l">kcal</div></div>' +
+      '<div class="stat"><div class="v">'+Math.round(t.protein)+'g</div><div class="l">Protéines</div></div>' +
+      '<div class="stat"><div class="v">'+Math.round(t.carbs)+'g</div><div class="l">Glucides</div></div>' +
+      '<div class="stat"><div class="v">'+Math.round(t.fat)+'g</div><div class="l">Lipides</div></div>' +
+    '</div>'
+  );
+
+  document.querySelectorAll('#sheet .chip').forEach(c=>{
+    c.addEventListener('click', ()=> openMealSheet(meal, c.dataset.s));
+  });
+  document.getElementById('ing-add').addEventListener('click', ()=>{
+    const l = mealIngredients(m, viewStepKey, meal);
+    l.push({id:uid(), name:'', grams:'', kcal100:'', protein100:'', carbs100:'', fat100:''});
+    setMealIngredients(m, viewStepKey, meal, l);
+    openMealSheet(meal, viewStepKey);
+    renderMealBlocks(m, curStepKey(m));
+  });
+  document.querySelectorAll('#sheet .ing-del').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const l = mealIngredients(m, viewStepKey, meal);
+      l.splice(+b.dataset.i, 1);
+      setMealIngredients(m, viewStepKey, meal, l);
+      openMealSheet(meal, viewStepKey);
+      renderMealBlocks(m, curStepKey(m));
+    });
+  });
+  document.querySelectorAll('#sheet .ing-row input').forEach(inp=>{
+    inp.addEventListener('change', ()=>{
+      const l = mealIngredients(m, viewStepKey, meal);
+      const i = +inp.dataset.i, f = inp.dataset.f;
+      l[i][f] = f === 'name' ? inp.value.trim() : inp.value;
+      setMealIngredients(m, viewStepKey, meal, l);
+      openMealSheet(meal, viewStepKey);
+      renderMealBlocks(m, curStepKey(m));
+    });
   });
 }
 
+/* ==========================================================
+   10. API CLAUDE
+   ========================================================== */
 async function callClaude(opts){
   const key = getApiKey();
   if(!key) throw new Error('Aucune clé API configurée.');
@@ -1536,58 +1665,490 @@ function bindImage(inputId, prevId, setter){
 /* ==========================================================
    12. RECETTES
    ========================================================== */
-let recImg = null;
-bindImage('rec-img', 'rec-img-prev', v=> recImg = v);
+const RECIPE_MOMENTS = {petitDej:'Petit-déjeuner', midi:'Midi', soir:'Soir', shaker:'Shaker'};
 
-document.getElementById('gen-rec').addEventListener('click', async ()=>{
-  const btn = document.getElementById('gen-rec'), out = document.getElementById('rec-out');
-  const kcal = parseFloat(document.getElementById('rec-kcal').value);
-  if(!kcal){ out.innerHTML = '<div class="err">Indique les kcal voulues pour ce repas.</div>'; return; }
-  if(!getApiKey()){ out.innerHTML = '<div class="err">Configure ta clé API dans les réglages (onglet Profil).</div>'; return; }
+let recipeMode = 'list';   // 'list' | 'detail' | 'edit'
+let recipeSelId = null;
+let recipeDraft = null;
+let recipeEditIsNew = false;
+let recipeFilters = {moment:'', kcalMin:'', kcalMax:'', protMin:'', protMax:'', carbMin:'', carbMax:'', fatMin:'', fatMax:''};
 
-  const meal = document.getElementById('rec-meal').value;
-  const budget = document.getElementById('rec-budget').value;
-  const temps = document.getElementById('rec-temps').value;
-  const note = document.getElementById('rec-note').value.trim();
-  const step = curStep();
+function recipeTotals(r){ return ingredientTotals(r.ingredients); }
 
-  const daily = step
-    ? 'Objectifs journaliers actuels : ' + step.kcal + ' kcal, ' + step.protein + ' g de protéines'
-      + (step.carbs != null ? ', ' + step.carbs + ' g de glucides' : '')
-      + (step.fat != null ? ', ' + step.fat + ' g de lipides' : '')
-      + ' (mode ' + MODES[curMode()].label + ', ' + step.label + ').'
-    : '';
+function matchesRecipeFilters(r){
+  const t = recipeTotals(r), f = recipeFilters;
+  if(f.moment && r.moment !== f.moment) return false;
+  const inRange = (val, min, max)=>
+    (min === '' || val >= parseFloat(min)) && (max === '' || val <= parseFloat(max));
+  return inRange(t.kcal, f.kcalMin, f.kcalMax) &&
+    inRange(t.protein, f.protMin, f.protMax) &&
+    inRange(t.carbs, f.carbMin, f.carbMax) &&
+    inRange(t.fat, f.fatMin, f.fatMax);
+}
 
-  const guidance = recImg
-    ? "Une capture Yazio est fournie : elle montre ce qu'il reste à consommer aujourd'hui. Cale les macros du repas sur ces restes, proportionnellement à la part de kcal que ce repas représente."
-    : "Aucune capture n'est fournie. Cale les macros uniquement sur les " + kcal + " kcal du repas et sur les objectifs journaliers : protéines en priorité, environ 25 à 30 % des kcal du repas en lipides, le reste en glucides.";
+function renderRecettes(){
+  const box = document.getElementById('recettes-view');
+  if(recipeMode === 'edit'){ box.innerHTML = recipeEditHTML(); bindRecipeEdit(); return; }
 
-  const system = "Tu es un coach nutrition francophone pour un pratiquant de musculation.\n" + daily + "\n\n" +
-    "Le client veut une recette de " + meal + " d'environ " + kcal + " kcal, tolérance plus ou moins 50 kcal.\n" + guidance + "\n\n" +
-    "Contraintes : budget " + budget + ", préparation en " + temps + " maximum.\n" +
-    (note ? "Remarque du client, à respecter en priorité : " + note + "\n" : "") +
-    "\nQUANTITÉS RÉALISTES, pour UN repas individuel et pas pour la journée :\n" +
-    "Féculent cru (riz, pâtes, quinoa, semoule) 50 à 90 g, jamais plus de 100 g cru.\n" +
-    "Pommes de terre 150 à 300 g. Viande, poisson ou volaille 120 à 200 g. Œufs 2 à 4.\n" +
-    "Légumes 150 à 300 g. Fromage blanc ou skyr 150 à 300 g. Légumineuses cuites 100 à 200 g.\n" +
-    "Si le calcul pousse au-delà de ces repères, ajoute un autre aliment plutôt que de gonfler une seule quantité.\n\n" +
-    "Génère TROIS recettes vraiment différentes, pas des variantes. Réponds uniquement avec ce format, sans préambule ni conclusion :\n\n" +
-    "PROPOSITION 1 - NOM DU PLAT\nIngrédients :\n- ...\nPréparation :\n1. ...\nTotal estimé : X kcal | Protéines X g | Glucides X g | Lipides X g\n\n" +
-    "PROPOSITION 2 - NOM DU PLAT\n[même structure]\n\nPROPOSITION 3 - NOM DU PLAT\n[même structure]";
+  if(recipeMode === 'detail'){
+    const r = getRecipes().find(x=>x.id === recipeSelId);
+    if(!r){ recipeMode = 'list'; renderRecettes(); return; }
+    box.innerHTML = recipeDetailHTML(r);
+    bindRecipeDetail(r);
+    return;
+  }
+
+  const all = getRecipes();
+  const filtered = all.filter(matchesRecipeFilters);
+  box.innerHTML = recipeFiltersHTML() + (
+    all.length === 0
+      ? '<div class="card"><div class="empty">Aucune recette enregistrée. Ajoute la première.</div></div>'
+      : (filtered.length === 0
+        ? '<div class="card"><div class="empty">Aucune recette ne correspond à ces filtres.</div></div>'
+        : filtered.map(recipeCardHTML).join(''))
+  );
+  bindRecipeList();
+}
+
+function recipeFiltersHTML(){
+  const f = recipeFilters;
+  return '<div class="card">' +
+    '<div class="card-head"><h2>Recettes</h2></div>' +
+    '<div class="field"><label>Moment de la journée</label><select id="rf-moment">' +
+      '<option value="">Tous</option>' +
+      Object.keys(RECIPE_MOMENTS).map(k=>'<option value="'+k+'"'+(f.moment===k?' selected':'')+'>'+RECIPE_MOMENTS[k]+'</option>').join('') +
+    '</select></div>' +
+    '<div class="grid2">' +
+      '<div class="field"><label>Kcal min</label><input type="number" id="rf-kcalmin" value="'+f.kcalMin+'"></div>' +
+      '<div class="field"><label>Kcal max</label><input type="number" id="rf-kcalmax" value="'+f.kcalMax+'"></div>' +
+      '<div class="field"><label>Prot min (g)</label><input type="number" id="rf-protmin" value="'+f.protMin+'"></div>' +
+      '<div class="field"><label>Prot max (g)</label><input type="number" id="rf-protmax" value="'+f.protMax+'"></div>' +
+      '<div class="field"><label>Gluc min (g)</label><input type="number" id="rf-carbmin" value="'+f.carbMin+'"></div>' +
+      '<div class="field"><label>Gluc max (g)</label><input type="number" id="rf-carbmax" value="'+f.carbMax+'"></div>' +
+      '<div class="field"><label>Lip min (g)</label><input type="number" id="rf-fatmin" value="'+f.fatMin+'"></div>' +
+      '<div class="field"><label>Lip max (g)</label><input type="number" id="rf-fatmax" value="'+f.fatMax+'"></div>' +
+    '</div>' +
+    '<button class="btn block" id="rec-add" style="margin-top:4px">+ Recette</button>' +
+    '</div>';
+}
+
+function recipeCardHTML(r){
+  const t = recipeTotals(r);
+  return '<div class="card recipe-card" data-id="'+r.id+'">' +
+    '<div style="display:flex;gap:12px;align-items:center">' +
+      (r.photo
+        ? '<img src="'+r.photo+'" style="width:64px;height:64px;border-radius:12px;object-fit:cover;flex:none">'
+        : '<div style="width:64px;height:64px;border-radius:12px;flex:none;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-size:1.4rem">🍽</div>') +
+      '<div style="flex:1;min-width:0">' +
+        '<div class="sess-title" style="font-size:.9rem">'+esc(r.name)+'</div>' +
+        '<div class="small muted">'+Math.round(t.kcal)+' kcal'+(r.prepMinutes ? ' · '+r.prepMinutes+' min' : '')+'</div>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function bindRecipeList(){
+  document.getElementById('rec-add').addEventListener('click', ()=> openRecipeEdit(null));
+  document.querySelectorAll('.recipe-card').forEach(c=>{
+    c.addEventListener('click', ()=>{ recipeSelId = c.dataset.id; recipeMode = 'detail'; renderRecettes(); });
+  });
+  const bind = (id, key)=> document.getElementById(id).addEventListener('change', e=>{ recipeFilters[key] = e.target.value; renderRecettes(); });
+  bind('rf-moment','moment');
+  bind('rf-kcalmin','kcalMin'); bind('rf-kcalmax','kcalMax');
+  bind('rf-protmin','protMin'); bind('rf-protmax','protMax');
+  bind('rf-carbmin','carbMin'); bind('rf-carbmax','carbMax');
+  bind('rf-fatmin','fatMin'); bind('rf-fatmax','fatMax');
+}
+
+function recipeDetailHTML(r){
+  const t = recipeTotals(r);
+  return '<button class="btn ghost sm sess-back" id="rec-back">← Toutes les recettes</button>' +
+    '<div class="card">' +
+    (r.photo ? '<img src="'+r.photo+'" style="width:100%;max-height:220px;border-radius:14px;margin-bottom:14px;object-fit:cover">' : '') +
+    '<div class="sess-title" style="font-size:1.1rem;margin-bottom:10px">'+esc(r.name)+'</div>' +
+    '<div class="stats">' +
+      '<div class="stat"><div class="v">'+Math.round(t.kcal)+'</div><div class="l">kcal</div></div>' +
+      '<div class="stat"><div class="v">'+Math.round(t.protein)+'g</div><div class="l">Protéines</div></div>' +
+      '<div class="stat"><div class="v">'+Math.round(t.carbs)+'g</div><div class="l">Glucides</div></div>' +
+      '<div class="stat"><div class="v">'+Math.round(t.fat)+'g</div><div class="l">Lipides</div></div>' +
+    '</div>' +
+    '<div class="small muted" style="margin-top:10px">'+(r.prepMinutes ? '⏱ '+r.prepMinutes+' min · ' : '')+esc(RECIPE_MOMENTS[r.moment]||'')+'</div>' +
+    '<h3 class="sec">Ingrédients</h3>' +
+    (r.ingredients.length
+      ? r.ingredients.map(i=>'<div class="kv"><span class="k">'+esc(i.name)+'</span><span class="v">'+(i.grams||0)+' g</span></div>').join('')
+      : '<div class="empty">Aucun ingrédient renseigné.</div>') +
+    (r.steps.length
+      ? '<h3 class="sec">Préparation</h3><ul class="prep-list">'+r.steps.map(s=>'<li>'+esc(s)+'</li>').join('')+'</ul>'
+      : '') +
+    '<div class="btn-row" style="margin-top:16px">' +
+      '<button class="btn sec sm" id="rec-edit" style="flex:1">Modifier</button>' +
+      '<button class="icon-btn danger" id="rec-del" style="width:44px;height:44px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>' +
+    '</div>' +
+    '<button class="btn block" id="rec-adjust" style="margin-top:10px">Ajuster à mon objectif</button>' +
+    '</div>';
+}
+
+function bindRecipeDetail(r){
+  document.getElementById('rec-back').addEventListener('click', ()=>{ recipeMode = 'list'; renderRecettes(); });
+  document.getElementById('rec-edit').addEventListener('click', ()=> openRecipeEdit(r.id));
+  document.getElementById('rec-del').addEventListener('click', ()=>{
+    if(!confirm('Supprimer cette recette ?')) return;
+    setRecipes(getRecipes().filter(x=>x.id !== r.id));
+    recipeMode = 'list'; renderRecettes();
+  });
+  document.getElementById('rec-adjust').addEventListener('click', ()=> openAdjustSheet(r));
+}
+
+function openRecipeEdit(id){
+  const existing = id ? getRecipes().find(x=>x.id === id) : null;
+  recipeEditIsNew = !existing;
+  recipeDraft = existing
+    ? JSON.parse(JSON.stringify(existing))
+    : {id:uid(), name:'', photo:null, moment:'midi', prepMinutes:'', ingredients:[], steps:[]};
+  recipeMode = 'edit';
+  renderRecettes();
+}
+
+function recipeEditHTML(){
+  const r = recipeDraft, t = recipeTotals(r);
+  const ingRows = r.ingredients.map((ing,i)=>
+    '<div class="ex ring-row" data-i="'+i+'">' +
+      '<div class="ex-top">' +
+        '<input class="ring-name" data-i="'+i+'" data-f="name" value="'+esc(ing.name)+'" placeholder="Nom de l\'ingrédient">' +
+        '<button class="icon-btn danger ring-del" data-i="'+i+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>' +
+      '</div>' +
+      '<div class="grid2">' +
+        '<div class="field"><label>Grammes</label><input type="number" inputmode="numeric" data-i="'+i+'" data-f="grams" value="'+(ing.grams||'')+'"></div>' +
+        '<div class="field"><label>Kcal /100g</label><input type="number" inputmode="decimal" data-i="'+i+'" data-f="kcal100" value="'+(ing.kcal100||'')+'"></div>' +
+      '</div>' +
+      '<div class="grid3">' +
+        '<div class="field"><label>Prot /100g</label><input type="number" inputmode="decimal" data-i="'+i+'" data-f="protein100" value="'+(ing.protein100||'')+'"></div>' +
+        '<div class="field"><label>Gluc /100g</label><input type="number" inputmode="decimal" data-i="'+i+'" data-f="carbs100" value="'+(ing.carbs100||'')+'"></div>' +
+        '<div class="field"><label>Lip /100g</label><input type="number" inputmode="decimal" data-i="'+i+'" data-f="fat100" value="'+(ing.fat100||'')+'"></div>' +
+      '</div>' +
+      '<div class="grid2">' +
+        '<div class="field"><label>Grammage min (option.)</label><input type="number" inputmode="numeric" data-i="'+i+'" data-f="minGrams" value="'+(ing.minGrams||'')+'"></div>' +
+        '<div class="field"><label>Grammage max (option.)</label><input type="number" inputmode="numeric" data-i="'+i+'" data-f="maxGrams" value="'+(ing.maxGrams||'')+'"></div>' +
+      '</div>' +
+    '</div>'
+  ).join('');
+
+  const stepRows = r.steps.map((s,i)=>
+    '<div class="btn-row" style="margin-bottom:8px">' +
+      '<input class="step-input" data-i="'+i+'" value="'+esc(s)+'" placeholder="Étape '+(i+1)+'" style="flex:1">' +
+      '<button class="icon-btn danger step-del" data-i="'+i+'" style="width:40px;height:40px;flex:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
+    '</div>'
+  ).join('');
+
+  return '<button class="btn ghost sm sess-back" id="rec-cancel">← Annuler</button>' +
+    '<div class="card">' +
+    '<div class="card-head"><h2>'+(recipeEditIsNew ? 'Nouvelle recette' : 'Modifier la recette')+'</h2></div>' +
+    '<div class="field"><label>Nom</label><input id="re-name" value="'+esc(r.name)+'" placeholder="Bowl poulet riz"></div>' +
+    '<div class="grid2">' +
+      '<div class="field"><label>Moment de la journée</label><select id="re-moment">' +
+        Object.keys(RECIPE_MOMENTS).map(k=>'<option value="'+k+'"'+(r.moment===k?' selected':'')+'>'+RECIPE_MOMENTS[k]+'</option>').join('') +
+      '</select></div>' +
+      '<div class="field"><label>Temps de préparation (min)</label><input type="number" id="re-time" value="'+(r.prepMinutes||'')+'"></div>' +
+    '</div>' +
+    '<div class="field"><label>Photo</label><input type="file" id="re-photo" accept="image/*">' +
+      (r.photo
+        ? '<div style="margin-top:9px"><img class="thumb" src="'+r.photo+'"><button class="btn ghost sm" id="re-photo-clear" style="margin-top:8px">Retirer la photo</button></div>'
+        : '<div id="re-photo-prev"></div>') +
+    '</div>' +
+    '<h3 class="sec">Import assisté par IA</h3>' +
+    '<p class="small muted" style="margin-top:-6px">Récupère une recette depuis un lien ou une photo, puis relis et corrige avant d\'enregistrer.</p>' +
+    '<div class="field"><label>Depuis un lien</label><div style="display:flex;gap:8px">' +
+      '<input id="re-import-url" placeholder="https://...">' +
+      '<button class="btn sec sm" id="re-import-url-btn" style="flex:none">Importer</button>' +
+    '</div></div>' +
+    '<div class="field"><label>Depuis une photo (livre, capture, note)</label>' +
+      '<input type="file" id="re-import-photo" accept="image/*"></div>' +
+    '<div id="re-import-out"></div>' +
+    '<h3 class="sec">Ingrédients</h3>' +
+    (r.ingredients.length ? ingRows : '<div class="empty">Aucun ingrédient.</div>') +
+    '<button class="btn sec sm block" id="ring-add" style="margin-bottom:16px">+ Ingrédient</button>' +
+    '<div class="stats">' +
+      '<div class="stat"><div class="v">'+Math.round(t.kcal)+'</div><div class="l">kcal</div></div>' +
+      '<div class="stat"><div class="v">'+Math.round(t.protein)+'g</div><div class="l">Protéines</div></div>' +
+      '<div class="stat"><div class="v">'+Math.round(t.carbs)+'g</div><div class="l">Glucides</div></div>' +
+      '<div class="stat"><div class="v">'+Math.round(t.fat)+'g</div><div class="l">Lipides</div></div>' +
+    '</div>' +
+    '<h3 class="sec">Préparation</h3>' +
+    (r.steps.length ? stepRows : '<div class="empty">Aucune étape.</div>') +
+    '<button class="btn sec sm block" id="step-add-row" style="margin-bottom:16px">+ Étape</button>' +
+    '<button class="btn block" id="re-save">Enregistrer</button>' +
+    '</div>';
+}
+
+async function extractRecipeWithAI(text, img){
+  if(!getApiKey()) throw new Error('Configure ta clé API dans les réglages (onglet Profil).');
+  const system = "Tu extrais une recette de cuisine à partir du texte ou de l'image fourni, pour un pratiquant de musculation qui tient une application de suivi.\n" +
+    "Réponds UNIQUEMENT avec un objet JSON strict, sans texte autour, de cette forme exacte :\n" +
+    '{"name":"...", "prepMinutes":30, "ingredients":[{"name":"...", "grams":100, "kcal100":150, "protein100":10, "carbs100":20, "fat100":5}], "steps":["...", "..."]}\n' +
+    "kcal100/protein100/carbs100/fat100 sont les valeurs pour 100 g de CET ingrédient (utilise tes connaissances nutritionnelles usuelles si la source ne les donne pas explicitement). " +
+    "grams est le grammage de cet ingrédient tel qu'utilisé dans la recette, pas pour 100 g. " +
+    "steps est la liste des étapes de préparation, une chaîne par étape, sans numérotation. " +
+    "Si une information manque, fais une estimation raisonnable plutôt que de laisser vide.";
 
   const content = [];
-  if(recImg) content.push({type:'image', source:{type:'base64', media_type:recImg.mediaType, data:recImg.base64}});
-  content.push({type:'text', text:'Génère 3 propositions de ' + meal + ' à environ ' + kcal + ' kcal.'});
+  if(img) content.push({type:'image', source:{type:'base64', media_type:img.mediaType, data:img.base64}});
+  content.push({type:'text', text: text ? ('Voici le texte de la recette à structurer :\n\n' + text) : 'Lis cette image et structure la recette qu\'elle contient.'});
 
-  btn.disabled = true;
-  out.innerHTML = '<div class="loading"><div class="spin"></div>Génération...</div>';
-  try{
-    const txt = await callClaude({system, messages:[{role:'user', content}], maxTokens:1800});
-    out.innerHTML = '<div class="output">' + esc(txt) + '</div>';
-  }catch(err){
-    out.innerHTML = '<div class="err">' + esc(err.message) + '</div>';
-  }finally{ btn.disabled = false; }
-});
+  const txt = await callClaude({system, messages:[{role:'user', content}], maxTokens:2000});
+  const m = txt.match(/\{[\s\S]*\}/);
+  if(!m) throw new Error('Réponse illisible, réessaie ou saisis la recette à la main.');
+  const p = JSON.parse(m[0]);
+  return {
+    name: p.name || '',
+    prepMinutes: p.prepMinutes || '',
+    ingredients: (p.ingredients||[]).map(i=>({
+      id:uid(), name:i.name||'', grams:i.grams||'', kcal100:i.kcal100||'',
+      protein100:i.protein100||'', carbs100:i.carbs100||'', fat100:i.fat100||'', minGrams:'', maxGrams:'',
+    })),
+    steps: (p.steps||[]).filter(Boolean),
+  };
+}
+
+function applyExtractedToDraft(extracted){
+  if(extracted.name) recipeDraft.name = extracted.name;
+  if(extracted.prepMinutes) recipeDraft.prepMinutes = extracted.prepMinutes;
+  if(extracted.ingredients.length) recipeDraft.ingredients = extracted.ingredients;
+  if(extracted.steps.length) recipeDraft.steps = extracted.steps;
+  renderRecettes();
+}
+
+function bindRecipeEdit(){
+  document.getElementById('rec-cancel').addEventListener('click', ()=>{
+    recipeMode = recipeEditIsNew ? 'list' : 'detail';
+    recipeDraft = null;
+    renderRecettes();
+  });
+
+  document.getElementById('re-name').addEventListener('change', e=>{ recipeDraft.name = e.target.value.trim(); });
+  document.getElementById('re-moment').addEventListener('change', e=>{ recipeDraft.moment = e.target.value; });
+  document.getElementById('re-time').addEventListener('change', e=>{ recipeDraft.prepMinutes = e.target.value; });
+
+  document.getElementById('re-photo').addEventListener('change', async e=>{
+    const f = e.target.files[0];
+    if(!f) return;
+    const prev = document.getElementById('re-photo-prev');
+    if(prev) prev.innerHTML = '<div class="loading"><div class="spin"></div>Traitement...</div>';
+    try{
+      const img = await resizeImage(f);
+      recipeDraft.photo = img.dataUrl;
+      renderRecettes();
+    }catch(_){
+      if(prev) prev.innerHTML = '<div class="err">Image illisible, essaie un autre fichier.</div>';
+    }
+  });
+  const photoClear = document.getElementById('re-photo-clear');
+  if(photoClear) photoClear.addEventListener('click', ()=>{ recipeDraft.photo = null; renderRecettes(); });
+
+  document.getElementById('ring-add').addEventListener('click', ()=>{
+    recipeDraft.ingredients.push({id:uid(), name:'', grams:'', kcal100:'', protein100:'', carbs100:'', fat100:'', minGrams:'', maxGrams:''});
+    renderRecettes();
+  });
+  document.querySelectorAll('#recettes-view .ring-del').forEach(b=>{
+    b.addEventListener('click', ()=>{ recipeDraft.ingredients.splice(+b.dataset.i, 1); renderRecettes(); });
+  });
+  document.querySelectorAll('#recettes-view .ring-row input').forEach(inp=>{
+    inp.addEventListener('change', ()=>{
+      const i = +inp.dataset.i, f = inp.dataset.f;
+      recipeDraft.ingredients[i][f] = f === 'name' ? inp.value.trim() : inp.value;
+      renderRecettes();
+    });
+  });
+
+  document.getElementById('step-add-row').addEventListener('click', ()=>{
+    recipeDraft.steps.push('');
+    renderRecettes();
+  });
+  document.querySelectorAll('#recettes-view .step-del').forEach(b=>{
+    b.addEventListener('click', ()=>{ recipeDraft.steps.splice(+b.dataset.i, 1); renderRecettes(); });
+  });
+  document.querySelectorAll('#recettes-view .step-input').forEach(inp=>{
+    inp.addEventListener('change', ()=>{ recipeDraft.steps[+inp.dataset.i] = inp.value; });
+  });
+
+  document.getElementById('re-import-url-btn').addEventListener('click', async ()=>{
+    const url = document.getElementById('re-import-url').value.trim();
+    const out = document.getElementById('re-import-out'), btn = document.getElementById('re-import-url-btn');
+    if(!url){ out.innerHTML = '<div class="err">Colle un lien.</div>'; return; }
+    btn.disabled = true;
+    out.innerHTML = '<div class="loading"><div class="spin"></div>Récupération de la page...</div>';
+    try{
+      const res = await fetch(url);
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      const html = await res.text();
+      const text = html.replace(/<script[\s\S]*?<\/script>/gi,'').replace(/<style[\s\S]*?<\/style>/gi,'')
+        .replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0, 15000);
+      out.innerHTML = '<div class="loading"><div class="spin"></div>Analyse par l\'IA...</div>';
+      const extracted = await extractRecipeWithAI(text, null);
+      applyExtractedToDraft(extracted);
+      document.getElementById('re-import-out').innerHTML = '<div class="output">Recette importée : relis et corrige les champs avant d\'enregistrer.</div>';
+    }catch(err){
+      out.innerHTML = '<div class="err">Impossible de charger automatiquement ce lien (' + esc(err.message) + '). Certains sites bloquent la récupération externe : colle plutôt le texte de la recette ci-dessous.</div>' +
+        '<div class="field" style="margin-top:10px"><textarea id="re-import-paste" placeholder="Colle ici le texte de la recette (ingrédients, préparation...)"></textarea></div>' +
+        '<button class="btn sec sm block" id="re-import-paste-btn">Extraire depuis ce texte</button>';
+      document.getElementById('re-import-paste-btn').addEventListener('click', async ()=>{
+        const txt = document.getElementById('re-import-paste').value.trim();
+        const out2 = document.getElementById('re-import-out');
+        if(!txt) return;
+        out2.innerHTML = '<div class="loading"><div class="spin"></div>Analyse par l\'IA...</div>';
+        try{
+          const extracted = await extractRecipeWithAI(txt, null);
+          applyExtractedToDraft(extracted);
+          document.getElementById('re-import-out').innerHTML = '<div class="output">Recette importée : relis et corrige les champs avant d\'enregistrer.</div>';
+        }catch(err2){
+          document.getElementById('re-import-out').innerHTML = '<div class="err">'+esc(err2.message)+'</div>';
+        }
+      });
+    }finally{ btn.disabled = false; }
+  });
+
+  document.getElementById('re-import-photo').addEventListener('change', async e=>{
+    const f = e.target.files[0];
+    const out = document.getElementById('re-import-out');
+    if(!f) return;
+    out.innerHTML = '<div class="loading"><div class="spin"></div>Lecture de la photo...</div>';
+    try{
+      const img = await resizeImage(f);
+      const extracted = await extractRecipeWithAI(null, img);
+      applyExtractedToDraft(extracted);
+      document.getElementById('re-import-out').innerHTML = '<div class="output">Recette importée : relis et corrige les champs avant d\'enregistrer.</div>';
+    }catch(err){
+      document.getElementById('re-import-out').innerHTML = '<div class="err">'+esc(err.message)+'</div>';
+    }
+  });
+
+  document.getElementById('re-save').addEventListener('click', ()=>{
+    const name = document.getElementById('re-name').value.trim();
+    if(!name){ alert('Le nom est obligatoire.'); return; }
+    recipeDraft.name = name;
+    recipeDraft.moment = document.getElementById('re-moment').value;
+    recipeDraft.prepMinutes = parseFloat(document.getElementById('re-time').value) || '';
+    recipeDraft.ingredients = recipeDraft.ingredients.filter(i=> i.name);
+    recipeDraft.steps = recipeDraft.steps.filter(s=> s.trim());
+    const all = getRecipes();
+    const idx = all.findIndex(x=>x.id === recipeDraft.id);
+    if(idx >= 0) all[idx] = recipeDraft; else all.push(recipeDraft);
+    setRecipes(all);
+    recipeSelId = recipeDraft.id;
+    recipeDraft = null;
+    recipeMode = 'detail';
+    renderRecettes();
+  });
+}
+
+function adjustRecipe(r, target){
+  const profile = getProfile();
+  const limitPct = (parseFloat(profile.adjustMaxPercent) || 25) / 100;
+  const base = recipeTotals(r);
+  const scale = base.kcal > 0 ? target.kcal / base.kcal : 1;
+
+  let anyClamped = false;
+  const items = r.ingredients.map(ing=>{
+    const grams = parseFloat(ing.grams) || 0;
+    const rawNew = grams * scale;
+    const hasMin = ing.minGrams !== '' && ing.minGrams != null;
+    const hasMax = ing.maxGrams !== '' && ing.maxGrams != null;
+    const min = hasMin ? parseFloat(ing.minGrams) : grams * (1 - limitPct);
+    const max = hasMax ? parseFloat(ing.maxGrams) : grams * (1 + limitPct);
+    const clamped = Math.max(min, Math.min(max, rawNew));
+    if(Math.abs(clamped - rawNew) > 0.5) anyClamped = true;
+    return {
+      name: ing.name, oldGrams: grams, newGrams: Math.round(clamped),
+      kcal100: ing.kcal100, protein100: ing.protein100, carbs100: ing.carbs100, fat100: ing.fat100,
+    };
+  });
+
+  const totals = items.reduce((t,i)=>{
+    t.kcal += (parseFloat(i.kcal100)||0) * i.newGrams / 100;
+    t.protein += (parseFloat(i.protein100)||0) * i.newGrams / 100;
+    t.carbs += (parseFloat(i.carbs100)||0) * i.newGrams / 100;
+    t.fat += (parseFloat(i.fat100)||0) * i.newGrams / 100;
+    return t;
+  }, {kcal:0, protein:0, carbs:0, fat:0});
+
+  return {items, totals, scale, anyClamped, target};
+}
+
+function adjustResultHTML(res){
+  const rows = res.items.map(i=>
+    '<div class="kv"><span class="k">'+esc(i.name)+'</span><span class="v">'+i.oldGrams+' g → '+i.newGrams+' g</span></div>'
+  ).join('');
+  return '<div class="output" style="margin-top:14px">' +
+    (res.anyClamped ? '<p class="small" style="color:var(--warn);margin-bottom:10px">Certains ingrédients ont été plafonnés pour rester dans des quantités mangeables (limite de portion).</p>' : '') +
+    rows +
+    '<div class="stats" style="margin-top:12px">' +
+      '<div class="stat"><div class="v">'+Math.round(res.totals.kcal)+'</div><div class="l">kcal (obj. '+Math.round(res.target.kcal)+')</div></div>' +
+      '<div class="stat"><div class="v">'+Math.round(res.totals.protein)+'g</div><div class="l">Protéines</div></div>' +
+      '<div class="stat"><div class="v">'+Math.round(res.totals.carbs)+'g</div><div class="l">Glucides</div></div>' +
+      '<div class="stat"><div class="v">'+Math.round(res.totals.fat)+'g</div><div class="l">Lipides</div></div>' +
+    '</div>' +
+  '</div>';
+}
+
+function openAdjustSheet(r){
+  openSheet(
+    sheetHead('Ajuster : ' + r.name) +
+    '<p class="small muted" style="margin-bottom:14px">Indique ce qu\'il te reste à atteindre aujourd\'hui. La recette est mise à l\'échelle en une seule fois pour rester cohérente, dans la limite de tes réglages de portion (±' + (getProfile().adjustMaxPercent) + '% par défaut, ou les bornes propres à chaque ingrédient).</p>' +
+    '<div class="field"><label>Capture Yazio (optionnel)</label><input type="file" id="adj-img" accept="image/*"><div id="adj-img-prev"></div></div>' +
+    '<button class="btn sec sm block" id="adj-read" style="margin-bottom:14px">Lire la capture</button>' +
+    '<div class="grid2">' +
+      '<div class="field"><label>Kcal restants</label><input type="number" id="adj-kcal"></div>' +
+      '<div class="field"><label>Protéines restantes (g)</label><input type="number" id="adj-prot"></div>' +
+      '<div class="field"><label>Glucides restants (g)</label><input type="number" id="adj-carb"></div>' +
+      '<div class="field"><label>Lipides restants (g)</label><input type="number" id="adj-fat"></div>' +
+    '</div>' +
+    '<button class="btn block" id="adj-run" style="margin-top:6px">Calculer l\'ajustement</button>' +
+    '<div id="adj-out"></div>'
+  );
+
+  let adjImg = null;
+  bindImage('adj-img', 'adj-img-prev', v=> adjImg = v);
+
+  document.getElementById('adj-read').addEventListener('click', async ()=>{
+    const out = document.getElementById('adj-out'), btn = document.getElementById('adj-read');
+    if(!adjImg){ out.innerHTML = '<div class="err">Ajoute une capture Yazio.</div>'; return; }
+    if(!getApiKey()){ out.innerHTML = '<div class="err">Configure ta clé API dans les réglages (onglet Profil).</div>'; return; }
+    btn.disabled = true;
+    out.innerHTML = '<div class="loading"><div class="spin"></div>Lecture...</div>';
+    try{
+      const txt = await callClaude({
+        system: "Tu lis des captures d'écran de l'application Yazio montrant les calories et macros RESTANTES pour la journée.\n" +
+          'Réponds UNIQUEMENT avec un objet JSON strict : {"kcal":nombre,"protein":nombre,"carbs":nombre,"fat":nombre}. Aucun texte autour.',
+        messages:[{role:'user', content:[
+          {type:'image', source:{type:'base64', media_type:adjImg.mediaType, data:adjImg.base64}},
+          {type:'text', text:'Lis les macros restantes visibles sur cette capture.'},
+        ]}],
+        maxTokens:300,
+      });
+      const m = txt.match(/\{[\s\S]*\}/);
+      if(!m) throw new Error('Réponse illisible, saisis les valeurs à la main.');
+      const p = JSON.parse(m[0]);
+      document.getElementById('adj-kcal').value = Math.round(p.kcal || 0);
+      document.getElementById('adj-prot').value = Math.round(p.protein || 0);
+      document.getElementById('adj-carb').value = Math.round(p.carbs || 0);
+      document.getElementById('adj-fat').value = Math.round(p.fat || 0);
+      out.innerHTML = '';
+    }catch(err){
+      out.innerHTML = '<div class="err">'+esc(err.message)+'</div>';
+    }finally{ btn.disabled = false; }
+  });
+
+  document.getElementById('adj-run').addEventListener('click', ()=>{
+    const target = {
+      kcal: parseFloat(document.getElementById('adj-kcal').value),
+      protein: parseFloat(document.getElementById('adj-prot').value) || 0,
+      carbs: parseFloat(document.getElementById('adj-carb').value) || 0,
+      fat: parseFloat(document.getElementById('adj-fat').value) || 0,
+    };
+    const out = document.getElementById('adj-out');
+    if(!target.kcal){ out.innerHTML = '<div class="err">Indique au moins les kcal restants.</div>'; return; }
+    out.innerHTML = adjustResultHTML(adjustRecipe(r, target));
+  });
+}
 
 /* ==========================================================
    13. POIDS
@@ -1802,7 +2363,8 @@ async function sendMessage(){
   const text = chatInput.value.trim();
   if(!text) return;
   if(!getApiKey()){
-    document.getElementById('coach-key-warn').innerHTML = keyWarn();
+    document.getElementById('msgs').insertAdjacentHTML('beforeend', '<div class="err">Configure ta clé API dans les réglages (onglet Profil).</div>');
+    scrollChat();
     return;
   }
   const btn = document.getElementById('send-msg');
@@ -1858,7 +2420,8 @@ function renderProfile(){
     '<div class="kv"><span class="k">Fréquence</span><span class="v">'+esc(p.frequence)+'</span></div>' +
     '<div class="kv"><span class="k">Objectif</span><span class="v">'+esc(p.objectif)+'</span></div>' +
     '<div class="kv"><span class="k">Points faibles</span><span class="v">'+esc(p.faibles)+'</span></div>' +
-    '<div class="kv"><span class="k">Points forts</span><span class="v">'+esc(p.forts)+'</span></div>';
+    '<div class="kv"><span class="k">Points forts</span><span class="v">'+esc(p.forts)+'</span></div>' +
+    '<div class="kv"><span class="k">Limite ajustement recettes</span><span class="v">±'+esc(p.adjustMaxPercent)+'%</span></div>';
 }
 function renderState(){
   const sch = schedule(), now = currentPhase(sch), s = curStep(), h = weights();
@@ -1889,6 +2452,9 @@ document.getElementById('edit-profile').addEventListener('click', ()=>{
     '<div class="field"><label>Objectif</label><input id="p-obj" value="'+esc(p.objectif)+'"></div>' +
     '<div class="field"><label>Points faibles</label><input id="p-faib" value="'+esc(p.faibles)+'"></div>' +
     '<div class="field"><label>Points forts</label><input id="p-fort" value="'+esc(p.forts)+'"></div>' +
+    '<div class="field"><label>Limite d\'ajustement des recettes (%)</label>' +
+    '<input type="number" id="p-adjust" value="'+esc(p.adjustMaxPercent)+'"></div>' +
+    '<p class="small muted" style="margin:-6px 0 13px">Écart maximum autorisé sur le grammage d\'un ingrédient quand une recette est ajustée à ton objectif restant (sauf limite spécifique définie sur l\'ingrédient).</p>' +
     '<button class="btn block" id="p-save">Enregistrer</button>'
   );
   document.getElementById('p-save').addEventListener('click', ()=>{
@@ -1900,6 +2466,7 @@ document.getElementById('edit-profile').addEventListener('click', ()=>{
       objectif:document.getElementById('p-obj').value.trim(),
       faibles:document.getElementById('p-faib').value.trim(),
       forts:document.getElementById('p-fort').value.trim(),
+      adjustMaxPercent:parseFloat(document.getElementById('p-adjust').value) || DEFAULT_PROFILE.adjustMaxPercent,
     });
     closeSheet(); renderProfile();
   });
@@ -1923,12 +2490,12 @@ function openSettings(){
     const v = document.getElementById('k-input').value.trim();
     if(v) setApiKey(v);
     setModel(document.getElementById('k-model').value);
-    closeSheet(); refreshKeyWarns();
+    closeSheet();
   });
   const cb = document.getElementById('k-clear');
   if(cb) cb.addEventListener('click', ()=>{
     if(!confirm('Effacer la clé enregistrée ?')) return;
-    setApiKey(''); closeSheet(); refreshKeyWarns();
+    setApiKey(''); closeSheet();
   });
 }
 window.openSettings = openSettings;
@@ -1974,12 +2541,12 @@ renderCycle();
 renderSessions();
 renderVolume();
 renderMacros();
+renderRecettes();
 renderWeights();
 renderConvList();
 renderChat();
 renderProfile();
 renderState();
-refreshKeyWarns();
 updateSub();
 </script>
 </body>
