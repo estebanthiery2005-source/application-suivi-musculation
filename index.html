@@ -29,11 +29,37 @@
     --good:#3DDC97;
     --warn:#FFB648;
     --danger:#FF6B6B;
+    --accent-text:#C7BCFF;
+    --danger-text:#FF9C9C;
+    --panel-translucent:rgba(15,26,35,.94);
     --display:'Unbounded',system-ui,sans-serif;
     --body:'Inter',system-ui,-apple-system,sans-serif;
     --tabbar-h:56px;
   }
+  :root[data-theme="light"]{
+    --bg:#F5F5F5;
+    --panel:#FFFFFF;
+    --panel2:#ECEEF2;
+    --panel3:#E1E4EA;
+    --border:#D8DCE3;
+    --accent-soft:rgba(119,93,244,.12);
+    --accent-line:rgba(119,93,244,.4);
+    --text:#061016;
+    --muted:#5B6773;
+    --accent-text:#5B3FD1;
+    --danger-text:#C23B3B;
+    --panel-translucent:rgba(255,255,255,.9);
+  }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body,.screen,.overlay,.conv-drawer{transition:background-color .2s ease, color .2s ease;}
+  .btn,.icon-btn,.chip,.sess-card,.recipe-card,.tabbar button,.conv-item{
+    transition:transform .1s ease, background-color .15s ease, opacity .1s ease, border-color .15s ease;
+  }
+  .btn:active,.icon-btn:active,.chip:active,.sess-card:active,.recipe-card:active,.conv-item:active{
+    transform:scale(.96);
+    opacity:.85;
+  }
+  .tabbar button:active{transform:scale(.93);}
   [hidden]{display:none !important;}
   html,body{height:100%;height:100dvh;}
   body{
@@ -84,7 +110,7 @@
   .tabbar{
     flex:none;
     display:flex;
-    background:rgba(15,26,35,.94);
+    background:var(--panel-translucent);
     backdrop-filter:blur(18px);
     -webkit-backdrop-filter:blur(18px);
     border-top:1px solid var(--border);
@@ -195,7 +221,7 @@
     padding:11px 13px;
     font-size:.78rem;
     line-height:1.5;
-    color:#D9D3FF;
+    color:var(--accent-text);
     margin-bottom:14px;
   }
   .help-text[hidden]{display:none;}
@@ -306,7 +332,7 @@
     font-weight:700;
     letter-spacing:.02em;
   }
-  .badge.accent{background:var(--accent-soft);color:#B3A4FF;}
+  .badge.accent{background:var(--accent-soft);color:var(--accent-text);}
   .badge.good{background:rgba(61,220,151,.14);color:var(--good);}
   .badge.warn{background:rgba(255,182,72,.14);color:var(--warn);}
   .badge.bad{background:rgba(255,107,107,.14);color:var(--danger);}
@@ -344,7 +370,7 @@
   .num{text-align:right;}
   th.ph,td.ph{text-align:center;white-space:nowrap;}
   th.ph.now,td.ph.now{background:var(--accent-soft);}
-  td.ph.now{color:#C7BCFF;font-weight:700;}
+  td.ph.now{color:var(--accent-text);font-weight:700;}
   .empty{color:var(--muted);text-align:center;padding:26px 10px;font-size:.83rem;}
 
   /* ---------- Exercise rows ---------- */
@@ -372,10 +398,10 @@
   .ex-set.now{border-color:var(--accent-line);background:var(--accent-soft);}
   .ex-set .p{font-size:.6rem;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.05em;}
   .ex-set .v{font-size:.8rem;font-weight:700;margin-top:3px;}
-  .ex-set.now .v{color:#C7BCFF;}
+  .ex-set.now .v{color:var(--accent-text);}
   .ex-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px;}
   .tag{font-size:.62rem;font-weight:700;padding:3px 8px;border-radius:6px;letter-spacing:.03em;}
-  .tag.ss{background:rgba(119,93,244,.18);color:#B3A4FF;}
+  .tag.ss{background:rgba(119,93,244,.18);color:var(--accent-text);}
   .tag.drop{background:rgba(255,182,72,.14);color:var(--warn);}
   .ex-note{font-size:.74rem;color:var(--muted);line-height:1.45;margin-top:9px;padding-left:11px;border-left:2px solid var(--border);}
 
@@ -430,7 +456,7 @@
   @keyframes sp{to{transform:rotate(360deg);}}
   .err{
     background:rgba(255,107,107,.09);border:1px solid rgba(255,107,107,.35);
-    color:#FF9C9C;padding:11px 13px;border-radius:12px;font-size:.79rem;margin-top:12px;line-height:1.5;
+    color:var(--danger-text);padding:11px 13px;border-radius:12px;font-size:.79rem;margin-top:12px;line-height:1.5;
   }
   .notice{
     background:var(--accent-soft);border:1px solid var(--accent-line);
@@ -447,7 +473,7 @@
   .msg{max-width:88%;padding:12px 14px;border-radius:16px;font-size:.86rem;line-height:1.55;white-space:pre-wrap;word-wrap:break-word;}
   .msg.user{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:5px;}
   .msg.bot{align-self:flex-start;background:var(--panel);border:1px solid var(--border);border-bottom-left-radius:5px;}
-  .msg.bot b{color:#C7BCFF;}
+  .msg.bot b{color:var(--accent-text);}
   .msg img.chat-img{max-width:100%;border-radius:10px;display:block;margin-bottom:6px;}
   .action-card{
     align-self:flex-start;max-width:88%;
@@ -737,6 +763,13 @@
       <div id="state-view"></div>
     </div>
     <div class="card">
+      <div class="card-head"><h2>Apparence</h2></div>
+      <div class="chips" id="theme-sel">
+        <div class="chip" data-theme="dark">🌙 Sombre</div>
+        <div class="chip" data-theme="light">☀️ Clair</div>
+      </div>
+    </div>
+    <div class="card">
       <div class="card-head">
         <h2>Mes données</h2>
         <button class="help-btn" data-help="h-data">?</button>
@@ -796,16 +829,15 @@ const DEFAULT_SESSIONS = [
     priority:'Pectoraux · Dos · Épaules · Triceps · Biceps',
     rest:{hyper:'2 min', force:'2-3 min', endur:'60-90 s'},
     ex:[
-      {id:'u1e1', name:'Développé incliné Smith + haltères', hyper:'5x8-10', force:'5x5-6', endur:'4x15-20', ss:null, drop:false,
+      {id:'u1e1', name:'Développé incliné Smith + haltères', muscle:'Pectoraux', hyper:'5x8-10', force:'5x5-6', endur:'4x15-20', ss:null, drop:false,
        note:"Commencer par 2-3 séries haltères en charge légère, finir sur Smith. Basculer complètement aux haltères quand le mouvement est stable et contrôlé."},
-      {id:'u1e2', name:'Écarté poulie haute (bas du pec)', hyper:'3x12', force:'3x8-10', endur:'3x15-20', ss:null, drop:false, note:''},
-      {id:'u1e3', name:'Tractions (poids du corps)', hyper:'3x8-12', force:'4x5-6', endur:'3x12-15', ss:'down', drop:false, note:''},
-      {id:'u1e4', name:'T-bar row (prise neutre)', hyper:'3x8', force:'3x6-8', endur:'3x12-15', ss:'up', drop:false, note:''},
-      {id:'u1e5', name:'Élévations latérales', hyper:'3x12', force:'3x10', endur:'3x12-15', ss:'down', drop:false,
-       note:"À la poulie en Hypertrophie et Force. En Endurance, haltères 2 bras simultanés pour fluidifier le superset avec le face pull."},
-      {id:'u1e6', name:'Face pull à la poulie', hyper:'3x15', force:'3x12', endur:'3x12-15', ss:'up', drop:false, note:''},
-      {id:'u1e7', name:'Extension triceps poulie haute', hyper:'3x10-12', force:'3x8-10', endur:'3x15-20', ss:null, drop:false, note:''},
-      {id:'u1e8', name:'Curl barre EZ supination', hyper:'4x8-10', force:'4x6-8', endur:'3x15-20', ss:null, drop:true, note:''},
+      {id:'u1e2', name:'Écarté poulie haute (bas du pec)', muscle:'Pectoraux', hyper:'3x12', force:'3x8-10', endur:'3x15-20', ss:null, drop:false, note:''},
+      {id:'u1e3', name:'Tractions (poids du corps)', muscle:'Dos', hyper:'3x8-12', force:'4x5-6', endur:'3x12-15', ss:'down', drop:false, note:''},
+      {id:'u1e4', name:'T-bar row (prise neutre)', muscle:'Dos', hyper:'3x8', force:'3x6-8', endur:'3x12-15', ss:'up', drop:false, note:''},
+      {id:'u1e5', name:'Élévations latérales poulie', muscle:'Épaules', hyperName:'Élévations latérales poulie', forceName:'Élévations latérales poulie', endurName:'Élévations latérales haltères (2 bras simultanés)', hyper:'3x12', force:'3x10', endur:'3x12-15', ss:'down', drop:false, note:''},
+      {id:'u1e6', name:'Face pull à la poulie', muscle:'Épaules', hyper:'3x15', force:'3x12', endur:'3x12-15', ss:'up', drop:false, note:''},
+      {id:'u1e7', name:'Extension triceps poulie haute', muscle:'Triceps', hyper:'3x10-12', force:'3x8-10', endur:'3x15-20', ss:null, drop:false, note:''},
+      {id:'u1e8', name:'Curl barre EZ supination', muscle:'Biceps', hyper:'4x8-10', force:'4x6-8', endur:'3x15-20', ss:null, drop:true, note:''},
     ]
   },
   {
@@ -813,15 +845,15 @@ const DEFAULT_SESSIONS = [
     priority:'Pectoraux · Épaules · Dos · Triceps · Biceps',
     rest:{hyper:'2 min', force:'2-3 min', endur:'60-90 s'},
     ex:[
-      {id:'u2e1', name:'Développé couché machine', hyper:'5x8-10', force:'5x5-6', endur:'3x12-15', ss:'down', drop:false, note:''},
-      {id:'u2e2', name:'Pec fly machine', hyper:'3x12', force:'3x8-10', endur:'3x12-15', ss:'up', drop:false, note:''},
-      {id:'u2e3', name:'Tirage vertical prise serrée supination', hyper:'3x8-10', force:'3x5-6', endur:'3x15-20', ss:null, drop:false, note:''},
-      {id:'u2e4', name:'Rowing poulie basse prise large neutre', hyper:'4x8-10', force:'4x6-8', endur:'3x15-20', ss:null, drop:false, note:''},
-      {id:'u2e5', name:'Développé militaire haltères assis', hyper:'3x10-12', force:'4x5-6', endur:'3x15-20', ss:null, drop:false, note:''},
-      {id:'u2e6', name:'Élévations latérales poulie', hyper:'3x12', force:'3x10', endur:'3x15-20', ss:null, drop:false, note:''},
-      {id:'u2e7', name:'Overhead triceps extension poulie', hyper:'3x10-12', force:'3x8-10', endur:'3x12-15', ss:'down', drop:true,
+      {id:'u2e1', name:'Développé couché machine', muscle:'Pectoraux', hyper:'5x8-10', force:'5x5-6', endur:'3x12-15', ss:'down', drop:false, note:''},
+      {id:'u2e2', name:'Pec fly machine', muscle:'Pectoraux', hyper:'3x12', force:'3x8-10', endur:'3x12-15', ss:'up', drop:false, note:''},
+      {id:'u2e3', name:'Tirage vertical prise serrée supination', muscle:'Dos', hyper:'3x8-10', force:'3x5-6', endur:'3x15-20', ss:null, drop:false, note:''},
+      {id:'u2e4', name:'Rowing poulie basse prise large neutre', muscle:'Dos', hyper:'4x8-10', force:'4x6-8', endur:'3x15-20', ss:null, drop:false, note:''},
+      {id:'u2e5', name:'Développé militaire haltères assis', muscle:'Épaules', hyper:'3x10-12', force:'4x5-6', endur:'3x15-20', ss:null, drop:false, note:''},
+      {id:'u2e6', name:'Élévations latérales poulie', muscle:'Épaules', hyper:'3x12', force:'3x10', endur:'3x15-20', ss:null, drop:false, note:''},
+      {id:'u2e7', name:'Overhead triceps extension poulie', muscle:'Triceps', hyper:'3x10-12', force:'3x8-10', endur:'3x12-15', ss:'down', drop:true,
        note:"Le dégressif s'applique sur la dernière série uniquement, même pendant le superset avec le curl marteau."},
-      {id:'u2e8', name:'Curl marteau haltères', hyper:'4x10-12', force:'4x8-10', endur:'3x12-15', ss:'up', drop:false, note:''},
+      {id:'u2e8', name:'Curl marteau haltères', muscle:'Biceps', hyper:'4x10-12', force:'4x8-10', endur:'3x12-15', ss:'up', drop:false, note:''},
     ]
   },
   {
@@ -829,17 +861,16 @@ const DEFAULT_SESSIONS = [
     priority:'Fessiers · Ischio-jambiers · Quadriceps · Mollets · Abdos',
     rest:{hyper:'2 min', force:'2-3 min', endur:'60-90 s'},
     ex:[
-      {id:'l1e1', name:'Hip thrust à la machine', hyper:'5x10-12', force:'5x6-8', endur:'4x15-20', ss:null, drop:false,
+      {id:'l1e1', name:'Hip thrust à la machine', muscle:'Fessiers', hyper:'5x10-12', force:'5x6-8', endur:'4x15-20', ss:null, drop:false,
        note:"Pause d'1 seconde en position haute, hanche en extension complète, pour maximiser la contraction des fessiers."},
-      {id:'l1e2', name:'Leg curl assis', hyper:'3x10-12', force:'3x8-10', endur:'3x15-20', ss:null, drop:true, note:''},
-      {id:'l1e3', name:'RDL haltères', hyper:'3x10-12', force:'4x6-8', endur:'3x15', ss:null, drop:false,
+      {id:'l1e2', name:'Leg curl assis', muscle:'Ischio-jambiers', hyper:'3x10-12', force:'3x8-10', endur:'3x15-20', ss:null, drop:true, note:''},
+      {id:'l1e3', name:'RDL haltères', muscle:'Ischio-jambiers', hyper:'3x10-12', force:'4x6-8', endur:'3x15', ss:null, drop:false,
        note:"Dos droit, charnière de hanche, descente contrôlée jusqu'à l'étirement des ischio-jambiers. Ne jamais arrondir le bas du dos."},
-      {id:'l1e4', name:'Leg press inclinée', hyper:'4x10-12', force:'4x6-8', endur:'Leg extension 4x15-20', ss:null, drop:false,
-       note:"En phase Endurance, remplacée par du leg extension."},
-      {id:'l1e5', name:'Mollets debout Smith machine', hyper:'4x12-20', force:'4x10-12', endur:'4x20-25', ss:null, drop:false, note:''},
-      {id:'l1e6', name:'Gainage', hyper:'2x1min30', force:'2x1min30', endur:'3x1min30', ss:null, drop:false, note:''},
-      {id:'l1e7', name:'Relevé de jambes', hyper:'2x10-12', force:'2x10', endur:'2x12-15', ss:'down', drop:false, note:''},
-      {id:'l1e8', name:'Crunch poulie haute', hyper:'2x10-12', force:'2x10', endur:'2x12-15', ss:'up', drop:false, note:''},
+      {id:'l1e4', name:'Leg press inclinée', muscle:'Quadriceps', endurName:'Leg extension', hyper:'4x10-12', force:'4x6-8', endur:'4x15-20', ss:null, drop:false, note:''},
+      {id:'l1e5', name:'Mollets debout Smith machine', muscle:'Mollets', hyper:'4x12-20', force:'4x10-12', endur:'4x20-25', ss:null, drop:false, note:''},
+      {id:'l1e6', name:'Gainage', muscle:'Abdos', hyper:'2x1min30', force:'2x1min30', endur:'3x1min30', ss:null, drop:false, note:''},
+      {id:'l1e7', name:'Relevé de jambes', muscle:'Abdos', hyper:'2x10-12', force:'2x10', endur:'2x12-15', ss:'down', drop:false, note:''},
+      {id:'l1e8', name:'Crunch poulie haute', muscle:'Abdos', hyper:'2x10-12', force:'2x10', endur:'2x12-15', ss:'up', drop:false, note:''},
     ]
   },
   {
@@ -847,18 +878,19 @@ const DEFAULT_SESSIONS = [
     priority:'Fessiers · Ischio-jambiers · Quadriceps · Mollets · Abdos',
     rest:{hyper:'2 min', force:'2-3 min', endur:'60-90 s'},
     ex:[
-      {id:'l2e1', name:'Hip thrust à la machine', hyper:'4x10-12', force:'4x6-8', endur:'3x15', ss:null, drop:false,
+      {id:'l2e1', name:'Hip thrust à la machine', muscle:'Fessiers', hyper:'4x10-12', force:'4x6-8', endur:'3x15', ss:null, drop:false,
        note:"Remplace la fente arrière sur banc, arrêtée suite à une douleur reproductible à la cuisse gauche. Isolation fessiers plus pure."},
-      {id:'l2e2', name:'Leg curl allongé', hyper:'3x10-12', force:'3x8-10', endur:'3x15-20', ss:null, drop:true, note:''},
-      {id:'l2e3', name:'Leg extension assis', hyper:'4x8-10', force:'4x5-6', endur:'4x15-20', ss:null, drop:false,
+      {id:'l2e2', name:'Leg curl allongé', muscle:'Ischio-jambiers', hyper:'3x10-12', force:'3x8-10', endur:'3x15-20', ss:null, drop:true, note:''},
+      {id:'l2e3', name:'Leg extension assis', muscle:'Quadriceps', hyper:'4x8-10', force:'4x5-6', endur:'4x15-20', ss:null, drop:false,
        note:"Remplace le hack squat. Isolation quadriceps, moins fatiguant : les quadriceps sont un point fort, pas la priorité."},
-      {id:'l2e4', name:'Mollets Smith machine', hyper:'4x12-20', force:'4x10-12', endur:'4x20-25', ss:null, drop:false, note:''},
-      {id:'l2e5', name:'Gainage', hyper:'2x1min30', force:'2x1min30', endur:'3x1min30', ss:null, drop:false, note:''},
-      {id:'l2e6', name:'Relevé de jambes', hyper:'2x10-12', force:'2x10', endur:'2x12-15', ss:'down', drop:false, note:''},
-      {id:'l2e7', name:'Crunch poulie haute', hyper:'2x10-12', force:'2x10', endur:'2x12-15', ss:'up', drop:false, note:''},
+      {id:'l2e4', name:'Mollets Smith machine', muscle:'Mollets', hyper:'4x12-20', force:'4x10-12', endur:'4x20-25', ss:null, drop:false, note:''},
+      {id:'l2e5', name:'Gainage', muscle:'Abdos', hyper:'2x1min30', force:'2x1min30', endur:'3x1min30', ss:null, drop:false, note:''},
+      {id:'l2e6', name:'Relevé de jambes', muscle:'Abdos', hyper:'2x10-12', force:'2x10', endur:'2x12-15', ss:'down', drop:false, note:''},
+      {id:'l2e7', name:'Crunch poulie haute', muscle:'Abdos', hyper:'2x10-12', force:'2x10', endur:'2x12-15', ss:'up', drop:false, note:''},
     ]
   },
 ];
+const VOLUME_MUSCLES = ['Pectoraux','Épaules','Dos','Biceps','Triceps','Quadriceps','Fessiers','Ischio-jambiers','Mollets','Abdos'];
 
 const DEFAULT_VOLUME = [
   {m:'Pectoraux', s:16, mev:10, lo:12, hi:20},
@@ -937,7 +969,18 @@ const K = {
   ingredientLib:'coach_fitness_ingredient_lib',
   effort:'coach_fitness_effort',
   webSearch:'coach_fitness_web_search_on',
+  theme:'coach_fitness_theme',
 };
+
+function getTheme(){ return localStorage.getItem(K.theme) || 'dark'; }
+function setTheme(v){
+  localStorage.setItem(K.theme, v);
+  document.documentElement.setAttribute('data-theme', v);
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content', v === 'light' ? '#F5F5F5' : '#061016');
+}
+
+setTheme(getTheme());
 
 function ls(key, fallback){
   try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
@@ -1194,11 +1237,12 @@ document.getElementById('ics-all').addEventListener('click', ()=>{
    ========================================================== */
 let openSessionIdx = null;
 
+function exNameForPhase(e, k){ return (e[k+'Name'] && e[k+'Name'].trim()) || e.name; }
+
 function sessionCardHTML(s, si){
   const names = s.ex.map(e=>e.name).filter(Boolean).join(', ');
   return '<div class="card sess-card" data-s="'+si+'">' +
-    '<div class="sess-head"><span class="sess-title">'+esc(s.name)+'</span>' +
-    '<button class="icon-btn sess-edit" data-s="'+si+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></div>' +
+    '<div class="sess-head"><span class="sess-title">'+esc(s.name)+'</span></div>' +
     (s.priority ? '<div class="sess-prio">'+esc(s.priority)+'</div>' : '') +
     (names ? '<div class="sess-preview">'+esc(names)+'</div>' : '') +
     '<button class="btn block sm sess-open" data-s="'+si+'" style="margin-top:10px">Accéder à la séance</button>' +
@@ -1210,11 +1254,12 @@ function sessionDetailHTML(s, si, cur){
     const tags = [];
     if(e.ss) tags.push('<span class="tag ss">SS ' + (e.ss === 'down' ? '↓' : '↑') + '</span>');
     if(e.drop) tags.push('<span class="tag drop">DROP</span>');
+    if(e.muscle) tags.push('<span class="tag">'+esc(e.muscle)+'</span>');
     const sets = PH_KEYS.map(k=>
       '<div class="ex-set '+(k===cur?'now':'')+'"><div class="p">'+PH_SHORT[k]+'</div><div class="v">'+esc(e[k]||'—')+'</div></div>'
     ).join('');
     return '<div class="ex">' +
-      '<div class="ex-top"><span class="ex-idx">'+(i+1)+'</span><span class="ex-name">'+esc(e.name)+'</span>' +
+      '<div class="ex-top"><span class="ex-idx">'+(i+1)+'</span><span class="ex-name">'+esc(exNameForPhase(e, cur))+'</span>' +
       '<button class="icon-btn ex-edit" data-s="'+si+'" data-e="'+i+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></div>' +
       '<div class="ex-sets">'+sets+'</div>' +
       (tags.length ? '<div class="ex-tags">'+tags.join('')+'</div>' : '') +
@@ -1227,7 +1272,7 @@ function sessionDetailHTML(s, si, cur){
   return '<button class="btn ghost sm sess-back">← Toutes les séances</button>' +
     '<div class="card">' +
     '<div class="sess-head"><span class="sess-title">'+esc(s.name)+'</span>' +
-    '<button class="icon-btn sess-edit" data-s="'+si+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></div>' +
+    '<button class="icon-btn sess-more" data-s="'+si+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="12" cy="19" r="1.3"/></svg></button></div>' +
     '<div class="sess-prio">'+esc(s.priority)+'</div>' +
     '<div class="sess-rest">'+rest+'</div>' +
     exs +
@@ -1235,11 +1280,65 @@ function sessionDetailHTML(s, si, cur){
     '</div>';
 }
 
+function openSessionActions(si){
+  openSheet(
+    sheetHead('Actions de la séance') +
+    '<div class="btn-row" style="flex-direction:column;gap:8px">' +
+      '<button class="btn sec block" id="sa-edit">Modifier nom, priorités, repos</button>' +
+      '<button class="btn sec block" id="sa-reorder">Réorganiser les exercices</button>' +
+      '<button class="btn danger block" id="sa-del">Supprimer la séance</button>' +
+    '</div>'
+  );
+  document.getElementById('sa-edit').addEventListener('click', ()=>{ closeSheet(); editSession(si); });
+  document.getElementById('sa-reorder').addEventListener('click', ()=>{ closeSheet(); openReorderSheet(si); });
+  document.getElementById('sa-del').addEventListener('click', ()=>{
+    const sessions = getSessions();
+    if(!confirm('Supprimer la séance ' + sessions[si].name + ' et tous ses exercices ?')) return;
+    sessions.splice(si,1); setSessions(sessions); closeSheet();
+    openSessionIdx = null; renderSessions();
+  });
+}
+
+function openReorderSheet(si){
+  const sessions = getSessions();
+  const s = sessions[si];
+  openSheet(
+    sheetHead('Réorganiser · ' + s.name) +
+    '<div id="reorder-list">' +
+    s.ex.map((e,i)=>
+      '<div class="ex" style="display:flex;align-items:center;gap:10px;padding:10px 12px">' +
+        '<span class="ex-idx">'+(i+1)+'</span>' +
+        '<span style="flex:1;font-size:.85rem">'+esc(e.name)+'</span>' +
+        '<button class="icon-btn reorder-up" data-i="'+i+'" '+(i===0?'disabled':'')+' style="width:36px;height:36px">↑</button>' +
+        '<button class="icon-btn reorder-down" data-i="'+i+'" '+(i===s.ex.length-1?'disabled':'')+' style="width:36px;height:36px">↓</button>' +
+      '</div>'
+    ).join('') +
+    '</div>'
+  );
+  document.querySelectorAll('#sheet .reorder-up').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const i = +b.dataset.i;
+      if(i === 0) return;
+      [s.ex[i-1], s.ex[i]] = [s.ex[i], s.ex[i-1]];
+      setSessions(sessions); openReorderSheet(si); renderSessions();
+    });
+  });
+  document.querySelectorAll('#sheet .reorder-down').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const i = +b.dataset.i;
+      if(i === s.ex.length-1) return;
+      [s.ex[i+1], s.ex[i]] = [s.ex[i], s.ex[i+1]];
+      setSessions(sessions); openReorderSheet(si); renderSessions();
+    });
+  });
+}
+
 function renderSessions(){
   const sessions = getSessions();
   const cur = curPhaseKey();
   const box = document.getElementById('sessions');
   const listHead = document.getElementById('sess-list-head');
+  if(typeof renderVolume === 'function') renderVolume();
 
   if(!sessions.length){
     openSessionIdx = null;
@@ -1254,7 +1353,6 @@ function renderSessions(){
     if(listHead) listHead.hidden = false;
     box.innerHTML = sessions.map((s, si)=> sessionCardHTML(s, si)).join('');
     box.querySelectorAll('.sess-card').forEach(c=> c.addEventListener('click', ()=>{ openSessionIdx = +c.dataset.s; renderSessions(); }));
-    box.querySelectorAll('.sess-edit').forEach(b=> b.addEventListener('click', (ev)=>{ ev.stopPropagation(); editSession(+b.dataset.s); }));
     return;
   }
 
@@ -1264,7 +1362,7 @@ function renderSessions(){
   box.querySelector('.sess-back').addEventListener('click', ()=>{ openSessionIdx = null; renderSessions(); });
   box.querySelectorAll('.ex-edit').forEach(b=> b.addEventListener('click', ()=> editExercise(+b.dataset.s, +b.dataset.e)));
   box.querySelectorAll('.ex-add').forEach(b=> b.addEventListener('click', ()=> editExercise(+b.dataset.s, -1)));
-  box.querySelectorAll('.sess-edit').forEach(b=> b.addEventListener('click', ()=> editSession(+b.dataset.s)));
+  box.querySelectorAll('.sess-more').forEach(b=> b.addEventListener('click', ()=> openSessionActions(+b.dataset.s)));
 }
 
 function editExercise(si, ei){
@@ -1276,10 +1374,20 @@ function editExercise(si, ei){
   openSheet(
     sheetHead(isNew ? 'Nouvel exercice' : 'Modifier') +
     '<div class="field"><label>Nom</label><input id="f-name" value="'+esc(e.name)+'"></div>' +
+    '<div class="field"><label>Muscle principal (pour le volume hebdomadaire)</label><select id="f-muscle">' +
+      '<option value="">Aucun</option>' +
+      VOLUME_MUSCLES.map(m=>'<option value="'+esc(m)+'"'+(e.muscle===m?' selected':'')+'>'+esc(m)+'</option>').join('') +
+    '</select></div>' +
     '<div class="grid3">' +
       '<div class="field"><label>Hyper</label><input id="f-hyper" value="'+esc(e.hyper)+'" placeholder="4x8-10"></div>' +
       '<div class="field"><label>Force</label><input id="f-force" value="'+esc(e.force)+'" placeholder="4x5-6"></div>' +
       '<div class="field"><label>Endur</label><input id="f-endur" value="'+esc(e.endur)+'" placeholder="3x15-20"></div>' +
+    '</div>' +
+    '<p class="small muted" style="margin:-4px 0 4px">Laisse vide les champs ci-dessous si l\'exercice ne change pas selon la phase. Renseigne-les seulement si tu veux un exercice différent (ex: haltères en hypertrophie, poulie en endurance).</p>' +
+    '<div class="grid3">' +
+      '<div class="field"><label>Nom en Hyper</label><input id="f-hyperName" value="'+esc(e.hyperName||'')+'" placeholder="'+esc(e.name)+'"></div>' +
+      '<div class="field"><label>Nom en Force</label><input id="f-forceName" value="'+esc(e.forceName||'')+'" placeholder="'+esc(e.name)+'"></div>' +
+      '<div class="field"><label>Nom en Endur</label><input id="f-endurName" value="'+esc(e.endurName||'')+'" placeholder="'+esc(e.name)+'"></div>' +
     '</div>' +
     '<div class="field"><label>Superset (phase Endurance)</label><select id="f-ss">' +
       '<option value="">Aucun</option>' +
@@ -1305,9 +1413,13 @@ function editExercise(si, ei){
     if(!name){ alert('Le nom est obligatoire.'); return; }
     const o = {
       id:e.id, name,
+      muscle:document.getElementById('f-muscle').value || '',
       hyper:document.getElementById('f-hyper').value.trim(),
       force:document.getElementById('f-force').value.trim(),
       endur:document.getElementById('f-endur').value.trim(),
+      hyperName:document.getElementById('f-hyperName').value.trim(),
+      forceName:document.getElementById('f-forceName').value.trim(),
+      endurName:document.getElementById('f-endurName').value.trim(),
       ss:document.getElementById('f-ss').value || null,
       drop:document.getElementById('f-drop').value === '1',
       note:document.getElementById('f-note').value.trim(),
@@ -1393,25 +1505,37 @@ function volStatus(r){
   if(r.s > r.hi) return {t:'Au-dessus MAV', c:'warn'};
   return {t:'Correct', c:'accent'};
 }
+function setsFromPhaseString(str){
+  const m = (str||'').match(/(\d+)\s*x/i);
+  return m ? parseInt(m[1], 10) : 0;
+}
+function computeVolumeForPhase(phaseKey){
+  const totals = {};
+  VOLUME_MUSCLES.forEach(m=> totals[m] = 0);
+  getSessions().forEach(s=>{
+    s.ex.forEach(e=>{
+      if(!e.muscle || !(e.muscle in totals)) return;
+      totals[e.muscle] += setsFromPhaseString(e[phaseKey]);
+    });
+  });
+  return totals;
+}
 function renderVolume(){
-  const v = getVolume();
-  const rows = v.map((r,i)=>{
-    const st = volStatus(r);
-    return '<tr><td>'+esc(r.m)+'</td>' +
-      '<td class="num"><input type="number" class="vol-in" data-i="'+i+'" value="'+r.s+'" style="width:62px;padding:6px 8px;text-align:right;font-size:.8rem"></td>' +
-      '<td class="num muted">'+(r.mev||'—')+'</td>' +
-      '<td class="num muted">'+(r.hi ? r.lo+'-'+r.hi : '—')+'</td>' +
+  const targets = getVolume();
+  const phaseKey = curPhaseKey() || 'hyper';
+  const computed = computeVolumeForPhase(phaseKey);
+  const rows = targets.map(r=>{
+    const row = Object.assign({}, r, {s: computed[r.m] ?? r.s});
+    const st = volStatus(row);
+    return '<tr><td>'+esc(row.m)+'</td>' +
+      '<td class="num">'+row.s+'</td>' +
+      '<td class="num muted">'+(row.mev||'—')+'</td>' +
+      '<td class="num muted">'+(row.hi ? row.lo+'-'+row.hi : '—')+'</td>' +
       '<td><span class="badge '+st.c+'">'+st.t+'</span></td></tr>';
   }).join('');
   document.getElementById('vol-tbl').innerHTML =
+    '<p class="small muted" style="margin:0 0 10px">Séries calculées automatiquement à partir des exercices de tes séances, pour la phase en cours (' + esc(PHASES.find(p=>p.key===phaseKey)?.name || phaseKey) + ').</p>' +
     '<thead><tr><th>Groupe</th><th class="num">Séries</th><th class="num">MEV</th><th class="num">MAV</th><th>Statut</th></tr></thead><tbody>'+rows+'</tbody>';
-  document.querySelectorAll('.vol-in').forEach(inp=>{
-    inp.addEventListener('change', ()=>{
-      const d = getVolume();
-      d[+inp.dataset.i].s = parseInt(inp.value, 10) || 0;
-      setVolume(d); renderVolume();
-    });
-  });
 }
 
 /* ==========================================================
@@ -2582,8 +2706,8 @@ const APP_CHANGE_TOOL = {
         description:
           'Forme exacte attendue selon la valeur de "kind" :\n' +
           '- add_recipe: {name, moment: "petitDej"|"midi"|"soir"|"shaker", prepMinutes, portions, ingredients:[{name,grams,kcal100,protein100,carbs100,fat100}], steps:[string]}\n' +
-          '- add_session: {name, priority, rest:{hyper,force,endur}, ex:[{name,hyper,force,endur,ss:"down"|"up"|null,drop:bool,note}]}\n' +
-          '- add_exercise: {sessionName, exercise:{name,hyper,force,endur,ss,drop,note}}\n' +
+          '- add_session: {name, priority, rest:{hyper,force,endur}, ex:[{name,muscle,hyper,force,endur,hyperName,forceName,endurName,ss:"down"|"up"|null,drop:bool,note}]}\n' +
+          '- add_exercise: {sessionName, exercise:{name,muscle,hyper,force,endur,hyperName,forceName,endurName,ss,drop,note}} (muscle doit être une valeur parmi : ' + VOLUME_MUSCLES.join(', ') + '. hyperName/forceName/endurName ne servent que si le nom de l\'exercice change selon la phase, sinon laisse-les vides.)\n' +
           '- add_or_update_step: {mode:"seche"|"reverse"|"masse", label, kcal, protein, carbs, fat, note}\n' +
           '- set_meal: {mode:"seche"|"reverse"|"masse", stepLabel, meal:"petitDej"|"shaker", ingredients:[{name,grams,kcal100,protein100,carbs100,fat100}]}',
       },
@@ -2609,7 +2733,7 @@ function applyAppChange(kind, payload){
     s.push({
       id: uid(), name: payload.name || 'Nouvelle séance', priority: payload.priority || '',
       rest: {hyper:payload.rest?.hyper||'', force:payload.rest?.force||'', endur:payload.rest?.endur||''},
-      ex: (payload.ex||[]).map(e=>({name:e.name||'', hyper:e.hyper||'', force:e.force||'', endur:e.endur||'', ss:e.ss||null, drop:!!e.drop, note:e.note||''})),
+      ex: (payload.ex||[]).map(e=>({name:e.name||'', muscle:e.muscle||'', hyper:e.hyper||'', force:e.force||'', endur:e.endur||'', hyperName:e.hyperName||'', forceName:e.forceName||'', endurName:e.endurName||'', ss:e.ss||null, drop:!!e.drop, note:e.note||''})),
     });
     setSessions(s);
   } else if(kind === 'add_exercise'){
@@ -2617,7 +2741,7 @@ function applyAppChange(kind, payload){
     const idx = s.findIndex(x=> x.name.toLowerCase() === (payload.sessionName||'').toLowerCase());
     if(idx < 0) throw new Error('Séance "' + payload.sessionName + '" introuvable.');
     const e = payload.exercise || {};
-    s[idx].ex.push({name:e.name||'', hyper:e.hyper||'', force:e.force||'', endur:e.endur||'', ss:e.ss||null, drop:!!e.drop, note:e.note||''});
+    s[idx].ex.push({name:e.name||'', muscle:e.muscle||'', hyper:e.hyper||'', force:e.force||'', endur:e.endur||'', hyperName:e.hyperName||'', forceName:e.forceName||'', endurName:e.endurName||'', ss:e.ss||null, drop:!!e.drop, note:e.note||''});
     setSessions(s);
   } else if(kind === 'add_or_update_step'){
     const d = getModes();
@@ -2671,7 +2795,7 @@ function liveContext(){
   if(sessions.length){
     L.push('Détail complet du programme de séances (JSON) :');
     L.push(JSON.stringify(sessions));
-    L.push('Légende JSON séances : chaque séance a un nom, une priorité (groupes musculaires ciblés), un temps de repos par phase (hyper/force/endur), et une liste d\'exercices ex[] ; chaque exercice a un nom et des séries/reps propres à chaque phase (champs hyper/force/endur), un éventuel superset (ss: "down"/"up"), un dropset (drop), et une note technique (note).');
+    L.push('Légende JSON séances : chaque séance a un nom, une priorité (groupes musculaires ciblés), un temps de repos par phase (hyper/force/endur), et une liste d\'exercices ex[] ; chaque exercice a un nom, un muscle principal (muscle), des séries/reps propres à chaque phase (champs hyper/force/endur), d\'éventuels noms différents par phase si l\'exercice change (hyperName/forceName/endurName, sinon on garde "name"), un éventuel superset (ss: "down"/"up"), un dropset (drop), et une note technique (note).');
   }
   return 'CONTEXTE ACTUEL, DONNÉES RÉELLES DE SON APP\n' + L.join('\n');
 }
@@ -2894,6 +3018,13 @@ function renderProfile(){
     '<div class="kv"><span class="k">Points forts</span><span class="v">'+esc(p.forts)+'</span></div>' +
     '<div class="kv"><span class="k">Limite ajustement recettes</span><span class="v">±'+esc(p.adjustMaxPercent)+'%</span></div>';
 }
+function renderThemeSelector(){
+  const t = getTheme();
+  document.querySelectorAll('#theme-sel .chip').forEach(c=>{
+    c.classList.toggle('on', c.dataset.theme === t);
+    c.onclick = ()=>{ setTheme(c.dataset.theme); renderThemeSelector(); };
+  });
+}
 function renderState(){
   const sch = schedule(), now = currentPhase(sch), s = curStep(), h = weights();
   const phase = now.notStarted ? 'Démarre le ' + fmtShort(sch[0].start) : (now.finished ? 'Cycle terminé' : now.name);
@@ -3024,6 +3155,7 @@ renderConvList();
 renderChat();
 renderProfile();
 renderState();
+renderThemeSelector();
 updateSub();
 </script>
 </body>
