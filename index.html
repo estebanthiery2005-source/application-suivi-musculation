@@ -313,6 +313,28 @@
   /* ---------- Stats ---------- */
   .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;}
   @media(min-width:480px){.stats{grid-template-columns:repeat(4,1fr);}}
+
+  /* ---------- Médiathèque ---------- */
+  .album-card{display:flex;align-items:center;gap:12px;cursor:pointer;}
+  .album-thumb{
+    width:56px;height:56px;border-radius:12px;flex:none;background:var(--panel2);
+    display:flex;align-items:center;justify-content:center;font-size:1.3rem;overflow:hidden;
+  }
+  .album-thumb img{width:100%;height:100%;object-fit:cover;}
+  .media-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .media-thumb{
+    position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;background:var(--panel2);
+    display:flex;align-items:center;justify-content:center;font-size:1.6rem;cursor:pointer;
+  }
+  .media-thumb img,.media-thumb video{width:100%;height:100%;object-fit:cover;}
+  .media-thumb .media-del{
+    position:absolute;top:5px;right:5px;width:26px;height:26px;border-radius:50%;
+    background:rgba(6,16,22,.65);color:#fff;border:none;display:flex;align-items:center;justify-content:center;
+  }
+  .media-thumb .media-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.4rem;pointer-events:none;}
+  .media-viewer{position:fixed;inset:0;background:rgba(6,16,22,.94);z-index:110;display:flex;align-items:center;justify-content:center;}
+  .media-viewer img,.media-viewer video{max-width:94%;max-height:88%;border-radius:10px;}
+  .media-viewer .icon-btn{position:absolute;top:calc(env(safe-area-inset-top) + 14px);right:16px;background:rgba(255,255,255,.12);color:#fff;}
   .stat{
     background:var(--panel2);
     border:1px solid var(--border);
@@ -770,6 +792,11 @@
       </div>
     </div>
     <div class="card">
+      <div class="card-head"><h2>Médiathèque</h2></div>
+      <p class="small muted" style="margin-top:-4px">Range tes photos et vidéos par albums, séparément de ta pellicule.</p>
+      <button class="btn block" id="open-media">Ouvrir la médiathèque</button>
+    </div>
+    <div class="card">
       <div class="card-head">
         <h2>Mes données</h2>
         <button class="help-btn" data-help="h-data">?</button>
@@ -783,6 +810,12 @@
         <input type="file" id="import-file" accept="application/json" hidden>
       </div>
     </div>
+  </section>
+
+  <!-- ============ MÉDIATHÈQUE ============ -->
+  <section class="screen" id="screen-media">
+    <button class="btn ghost sm" id="media-back" style="margin-bottom:14px">← Retour</button>
+    <div id="media-view"></div>
   </section>
 
 </main>
@@ -3143,7 +3176,181 @@ document.getElementById('import-file').addEventListener('change', e=>{
 });
 
 /* ==========================================================
-   16. INIT
+   16. MÉDIATHÈQUE (IndexedDB)
+   ========================================================== */
+let mediaDbPromise = null;
+function mediaDb(){
+  if(mediaDbPromise) return mediaDbPromise;
+  mediaDbPromise = new Promise((resolve, reject)=>{
+    const req = indexedDB.open('coach_fitness_media', 1);
+    req.onupgradeneeded = ()=>{
+      const db = req.result;
+      if(!db.objectStoreNames.contains('albums')) db.createObjectStore('albums', {keyPath:'id'});
+      if(!db.objectStoreNames.contains('items')){
+        const store = db.createObjectStore('items', {keyPath:'id'});
+        store.createIndex('albumId', 'albumId');
+      }
+    };
+    req.onsuccess = ()=> resolve(req.result);
+    req.onerror = ()=> reject(req.error);
+  });
+  return mediaDbPromise;
+}
+async function idbAll(storeName, indexName, query){
+  const db = await mediaDb();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(storeName, 'readonly');
+    const src = indexName ? tx.objectStore(storeName).index(indexName) : tx.objectStore(storeName);
+    const req = query !== undefined ? src.getAll(query) : src.getAll();
+    req.onsuccess = ()=> resolve(req.result);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+async function idbPut(storeName, value){
+  const db = await mediaDb();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(storeName, 'readwrite');
+    tx.objectStore(storeName).put(value);
+    tx.oncomplete = ()=> resolve();
+    tx.onerror = ()=> reject(tx.error);
+  });
+}
+async function idbDelete(storeName, id){
+  const db = await mediaDb();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(storeName, 'readwrite');
+    tx.objectStore(storeName).delete(id);
+    tx.oncomplete = ()=> resolve();
+    tx.onerror = ()=> reject(tx.error);
+  });
+}
+
+let mediaOpenAlbumId = null;
+let mediaPrevTab = null;
+
+function openMediaLibrary(){
+  mediaPrevTab = document.querySelector('.tabbar button.active');
+  document.querySelectorAll('.tabbar button').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+  document.getElementById('screen-media').classList.add('active');
+  document.getElementById('page-title').textContent = 'Médiathèque';
+  document.getElementById('open-settings').hidden = true;
+  mediaOpenAlbumId = null;
+  renderMediaView();
+}
+function closeMediaLibrary(){
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+  const t = mediaPrevTab || document.querySelector('.tabbar button[data-tab="profil"]');
+  t.classList.add('active');
+  document.getElementById('screen-' + t.dataset.tab).classList.add('active');
+  document.getElementById('page-title').textContent = TITLES[t.dataset.tab];
+  document.getElementById('open-settings').hidden = (t.dataset.tab !== 'profil');
+}
+document.getElementById('open-media').addEventListener('click', openMediaLibrary);
+document.getElementById('media-back').addEventListener('click', ()=>{
+  if(mediaOpenAlbumId){ mediaOpenAlbumId = null; renderMediaView(); }
+  else closeMediaLibrary();
+});
+
+async function renderMediaView(){
+  const box = document.getElementById('media-view');
+  if(!mediaOpenAlbumId){
+    const albums = await idbAll('albums');
+    albums.sort((a,b)=> b.created - a.created);
+    box.innerHTML =
+      '<button class="btn block" id="media-new-album" style="margin-bottom:14px">+ Nouvel album</button>' +
+      (albums.length
+        ? albums.map(a=>'<div class="card album-card" data-id="'+a.id+'">' +
+            '<div class="album-thumb" id="album-thumb-'+a.id+'">📁</div>' +
+            '<div style="flex:1"><div class="sess-title" style="font-size:.9rem">'+esc(a.name)+'</div>' +
+            '<div class="small muted" id="album-count-'+a.id+'">…</div></div>' +
+          '</div>').join('')
+        : '<div class="card"><div class="empty">Aucun album. Crée-en un pour commencer à ranger tes photos et vidéos.</div></div>');
+    document.getElementById('media-new-album').addEventListener('click', async ()=>{
+      const name = prompt('Nom de l\'album :');
+      if(!name || !name.trim()) return;
+      await idbPut('albums', {id:uid(), name:name.trim(), created:Date.now()});
+      renderMediaView();
+    });
+    document.querySelectorAll('.album-card').forEach(c=>{
+      c.addEventListener('click', ()=>{ mediaOpenAlbumId = c.dataset.id; renderMediaView(); });
+    });
+    for(const a of albums){
+      const items = await idbAll('items', 'albumId', a.id);
+      const countEl = document.getElementById('album-count-'+a.id);
+      if(countEl) countEl.textContent = items.length + ' élément' + (items.length>1?'s':'');
+      const img = items.find(it=>it.type==='image');
+      const thumbEl = document.getElementById('album-thumb-'+a.id);
+      if(img && thumbEl) thumbEl.innerHTML = '<img src="'+URL.createObjectURL(img.blob)+'">';
+    }
+    return;
+  }
+
+  const album = (await idbAll('albums')).find(a=>a.id === mediaOpenAlbumId);
+  if(!album){ mediaOpenAlbumId = null; return renderMediaView(); }
+  const items = await idbAll('items', 'albumId', mediaOpenAlbumId);
+  items.sort((a,b)=> b.created - a.created);
+
+  box.innerHTML =
+    '<div class="card-head" style="margin-bottom:10px"><h2>'+esc(album.name)+'</h2>' +
+    '<button class="icon-btn danger" id="media-del-album"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button></div>' +
+    '<div class="field"><label>Ajouter des photos ou vidéos</label><input type="file" id="media-add-input" accept="image/*,video/*" multiple></div>' +
+    (items.length
+      ? '<div class="media-grid">' + items.map(it=>
+          '<div class="media-thumb" data-id="'+it.id+'">' +
+            (it.type === 'image'
+              ? '<img src="'+URL.createObjectURL(it.blob)+'">'
+              : '<video src="'+URL.createObjectURL(it.blob)+'" muted></video><div class="media-play">▶</div>') +
+            '<button class="icon-btn media-del" data-id="'+it.id+'">✕</button>' +
+          '</div>'
+        ).join('') + '</div>'
+      : '<div class="empty">Aucun élément dans cet album pour l\'instant.</div>');
+
+  document.getElementById('media-del-album').addEventListener('click', async ()=>{
+    if(!confirm('Supprimer l\'album "' + album.name + '" et tout son contenu ?')) return;
+    for(const it of items) await idbDelete('items', it.id);
+    await idbDelete('albums', album.id);
+    mediaOpenAlbumId = null;
+    renderMediaView();
+  });
+  document.getElementById('media-add-input').addEventListener('change', async e=>{
+    const files = Array.from(e.target.files || []);
+    for(const f of files){
+      const type = f.type.startsWith('video') ? 'video' : 'image';
+      await idbPut('items', {id:uid(), albumId:mediaOpenAlbumId, type, name:f.name, blob:f, created:Date.now()});
+    }
+    e.target.value = '';
+    renderMediaView();
+  });
+  document.querySelectorAll('.media-del').forEach(b=>{
+    b.addEventListener('click', async ev=>{
+      ev.stopPropagation();
+      if(!confirm('Supprimer cet élément ?')) return;
+      await idbDelete('items', b.dataset.id);
+      renderMediaView();
+    });
+  });
+  document.querySelectorAll('.media-thumb').forEach(t=>{
+    t.addEventListener('click', ()=> openMediaViewer(items.find(it=>it.id === t.dataset.id)));
+  });
+}
+
+function openMediaViewer(item){
+  if(!item) return;
+  const v = document.createElement('div');
+  v.className = 'media-viewer';
+  const url = URL.createObjectURL(item.blob);
+  v.innerHTML =
+    '<button class="icon-btn" id="media-viewer-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
+    (item.type === 'image' ? '<img src="'+url+'">' : '<video src="'+url+'" controls autoplay></video>');
+  document.body.appendChild(v);
+  const close = ()=>{ v.remove(); URL.revokeObjectURL(url); };
+  v.addEventListener('click', e=>{ if(e.target === v) close(); });
+  document.getElementById('media-viewer-close').addEventListener('click', close);
+}
+
+/* ==========================================================
+   17. INIT
    ========================================================== */
 renderCycle();
 renderSessions();
