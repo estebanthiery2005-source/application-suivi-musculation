@@ -439,21 +439,67 @@
   /* ---------- Coach chat ---------- */
   #screen-coach.active{display:flex;flex-direction:column;min-height:100%;}
   .conv-bar{display:flex;gap:8px;align-items:center;margin-bottom:14px;}
-  .conv-bar select{flex:1;}
+  .conv-title{flex:1;font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .msgs{flex:1;display:flex;flex-direction:column;gap:11px;padding-bottom:12px;}
   .msg{max-width:88%;padding:12px 14px;border-radius:16px;font-size:.86rem;line-height:1.55;white-space:pre-wrap;word-wrap:break-word;}
   .msg.user{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:5px;}
   .msg.bot{align-self:flex-start;background:var(--panel);border:1px solid var(--border);border-bottom-left-radius:5px;}
   .msg.bot b{color:#C7BCFF;}
+  .msg img.chat-img{max-width:100%;border-radius:10px;display:block;margin-bottom:6px;}
+  .action-card{
+    align-self:flex-start;max-width:88%;
+    background:var(--panel2);border:1px solid var(--accent-line);border-radius:14px;
+    padding:12px 14px;font-size:.84rem;
+  }
+  .action-card .action-summary{font-weight:600;}
+  .action-card.applied{border-color:var(--good);}
+  .action-card.rejected{border-color:var(--border);opacity:.7;}
   .composer{
     position:sticky;bottom:0;
     background:var(--bg);
     padding:10px 0 4px;
-    display:flex;gap:8px;align-items:flex-end;
+    display:flex;gap:6px;align-items:flex-end;
     border-top:1px solid var(--border);
   }
   .composer textarea{min-height:44px;max-height:130px;border-radius:14px;padding:12px 14px;}
   .composer .btn{height:44px;padding:0 15px;flex:none;}
+  .composer .icon-btn{flex:none;width:40px;height:44px;}
+  #chat-websearch.on{color:var(--accent);}
+  #chat-img-prev:not(:empty){margin-bottom:8px;}
+  #chat-img-prev img{max-height:90px;border-radius:10px;}
+  #chat-img-prev .btn-row{margin-top:6px;}
+
+  .conv-drawer-overlay{
+    position:fixed;inset:0;background:rgba(6,16,22,.6);z-index:90;
+  }
+  .conv-drawer-overlay[hidden]{display:none;}
+  .conv-drawer{
+    position:fixed;top:0;left:0;bottom:0;width:82%;max-width:320px;z-index:91;
+    background:var(--panel);border-right:1px solid var(--border);
+    padding:calc(env(safe-area-inset-top) + 16px) 14px 16px;
+    overflow-y:auto;
+    animation:slideIn .2s ease;
+  }
+  .conv-drawer[hidden]{display:none;}
+  @keyframes slideIn{from{transform:translateX(-12px);opacity:.4;}to{transform:none;opacity:1;}}
+  .conv-drawer-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .conv-drawer-head h2{font-family:var(--display);font-size:1rem;margin:0;}
+  .conv-item{
+    display:flex;align-items:center;gap:8px;padding:11px 10px;border-radius:12px;cursor:pointer;
+  }
+  .conv-item.on{background:var(--accent-soft);}
+  .conv-item .conv-item-title{flex:1;font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .conv-item-menu{position:relative;}
+  .conv-item-menu-pop{
+    position:absolute;right:0;top:100%;background:var(--panel3);border:1px solid var(--border);
+    border-radius:10px;overflow:hidden;z-index:5;min-width:140px;
+  }
+  .conv-item-menu-pop button{
+    display:block;width:100%;text-align:left;padding:10px 12px;background:none;border:none;
+    color:var(--text);font-family:var(--body);font-size:.82rem;cursor:pointer;
+  }
+  .conv-item-menu-pop button.danger{color:var(--danger);}
+  .conv-item-menu-pop button:hover{background:var(--panel2);}
   .chat-empty{
     flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
     text-align:center;color:var(--muted);gap:8px;padding:44px 20px;
@@ -636,22 +682,41 @@
   <!-- ============ COACH ============ -->
   <section class="screen" id="screen-coach">
     <div class="conv-bar">
-      <select id="conv-sel"></select>
+      <button class="icon-btn" id="open-conv-drawer" title="Conversations">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div class="conv-title" id="conv-title"></div>
       <button class="icon-btn" id="new-conv" title="Nouvelle conversation">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
       </button>
-      <button class="icon-btn danger" id="del-conv" title="Supprimer">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
-      </button>
     </div>
     <div class="msgs" id="msgs"></div>
+    <div id="chat-img-prev"></div>
     <div class="composer">
+      <button class="icon-btn" id="chat-attach" title="Joindre une photo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 8v6M18 11h6"/></svg>
+      </button>
+      <input type="file" id="chat-img-input" accept="image/*" hidden>
+      <button class="icon-btn" id="chat-websearch" title="Recherche web">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg>
+      </button>
       <textarea id="chat-input" placeholder="Pose ta question..." rows="1"></textarea>
       <button class="btn" id="send-msg">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
       </button>
     </div>
   </section>
+
+  <div class="conv-drawer-overlay" id="conv-drawer-overlay" hidden></div>
+  <div class="conv-drawer" id="conv-drawer" hidden>
+    <div class="conv-drawer-head">
+      <h2>Conversations</h2>
+      <button class="icon-btn" id="close-conv-drawer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div id="conv-list"></div>
+  </div>
 
   <!-- ============ PROFIL ============ -->
   <section class="screen" id="screen-profil">
@@ -866,6 +931,9 @@ const K = {
   profile:'coach_fitness_profile',
   convs:'coach_fitness_convs',
   curConv:'coach_fitness_cur_conv',
+  ingredientLib:'coach_fitness_ingredient_lib',
+  effort:'coach_fitness_effort',
+  webSearch:'coach_fitness_web_search_on',
 };
 
 function ls(key, fallback){
@@ -886,6 +954,13 @@ function getApiKey(){ return localStorage.getItem(K.key) || ''; }
 function setApiKey(v){ v ? localStorage.setItem(K.key, v) : localStorage.removeItem(K.key); }
 function getModel(){ return localStorage.getItem(K.model) || 'claude-sonnet-5'; }
 function setModel(v){ localStorage.setItem(K.model, v); }
+const EFFORT_LEVELS = {
+  rapide:{label:'Rapide', maxTokens:1000, hint:'Réponds de façon brève et directe.'},
+  standard:{label:'Standard', maxTokens:2000, hint:'Réponds avec un niveau de détail normal.'},
+  approfondi:{label:'Approfondi', maxTokens:4000, hint:'Prends le temps d\'analyser en profondeur avant de répondre, explore plusieurs angles si utile.'},
+};
+function getEffort(){ return localStorage.getItem(K.effort) || 'standard'; }
+function setEffort(v){ localStorage.setItem(K.effort, v); }
 
 function getModes(){
   let d = ls(K.modes, null) || {};
@@ -1444,6 +1519,35 @@ function setMealIngredients(m, stepKey, meal, list){
   ensureMeals(step)[meal] = list;
   setModes(d);
 }
+function getIngredientLib(){ return ls(K.ingredientLib, {}); }
+function setIngredientLib(v){ save(K.ingredientLib, v); }
+function ingLibKey(name){ return (name||'').trim().toLowerCase(); }
+function lookupIngredient(name){
+  const k = ingLibKey(name);
+  if(!k) return null;
+  return getIngredientLib()[k] || null;
+}
+function rememberIngredient(ing){
+  const k = ingLibKey(ing.name);
+  if(!k) return;
+  const hasMacro = ing.kcal100 || ing.protein100 || ing.carbs100 || ing.fat100;
+  if(!hasMacro) return;
+  const lib = getIngredientLib();
+  lib[k] = {
+    name: ing.name.trim(),
+    kcal100: ing.kcal100 || '',
+    protein100: ing.protein100 || '',
+    carbs100: ing.carbs100 || '',
+    fat100: ing.fat100 || '',
+  };
+  setIngredientLib(lib);
+}
+function ingredientNamesDatalist(){
+  const lib = getIngredientLib();
+  const names = Object.values(lib).map(i=>i.name).sort((a,b)=>a.localeCompare(b));
+  return '<datalist id="ingredient-names">' + names.map(n=>'<option value="'+esc(n)+'">').join('') + '</datalist>';
+}
+
 function ingredientTotals(list){
   return list.reduce((t, i)=>{
     const g = parseFloat(i.grams) || 0;
@@ -1485,7 +1589,7 @@ function openMealSheet(meal, viewStepKey){
   const rows = list.map((ing, i)=>
     '<div class="ex ing-row" data-i="'+i+'">' +
       '<div class="ex-top">' +
-        '<input class="ing-name" data-i="'+i+'" data-f="name" value="'+esc(ing.name)+'" placeholder="Nom de l\'ingrédient">' +
+        '<input class="ing-name" list="ingredient-names" data-i="'+i+'" data-f="name" value="'+esc(ing.name)+'" placeholder="Nom de l\'ingrédient">' +
         '<button class="icon-btn danger ing-del" data-i="'+i+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>' +
       '</div>' +
       '<div class="grid2">' +
@@ -1507,6 +1611,7 @@ function openMealSheet(meal, viewStepKey){
   openSheet(
     sheetHead(MEALS[meal].icon + ' ' + MEALS[meal].label) +
     (keys.length > 1 ? '<div class="chips" style="margin-bottom:14px">'+stepChips+'</div>' : '') +
+    ingredientNamesDatalist() +
     (list.length ? rows : '<div class="empty">Aucun ingrédient. Ajoute le premier ci-dessous.</div>') +
     '<button class="btn sec sm block" id="ing-add" style="margin:4px 0 16px">+ Ingrédient</button>' +
     '<div class="stats">' +
@@ -1540,7 +1645,17 @@ function openMealSheet(meal, viewStepKey){
     inp.addEventListener('change', ()=>{
       const l = mealIngredients(m, viewStepKey, meal);
       const i = +inp.dataset.i, f = inp.dataset.f;
-      l[i][f] = f === 'name' ? inp.value.trim() : inp.value;
+      const ing = l[i];
+      ing[f] = f === 'name' ? inp.value.trim() : inp.value;
+      if(f === 'name'){
+        const known = lookupIngredient(ing.name);
+        if(known && !ing.kcal100 && !ing.protein100 && !ing.carbs100 && !ing.fat100){
+          ing.kcal100 = known.kcal100; ing.protein100 = known.protein100;
+          ing.carbs100 = known.carbs100; ing.fat100 = known.fat100;
+        }
+      } else {
+        rememberIngredient(ing);
+      }
       setMealIngredients(m, viewStepKey, meal, l);
       openMealSheet(meal, viewStepKey);
       renderMealBlocks(m, curStepKey(m));
@@ -1555,11 +1670,12 @@ async function callClaude(opts){
   const key = getApiKey();
   if(!key) throw new Error('Aucune clé API configurée.');
   const body = {
-    model: getModel(),
+    model: opts.model || getModel(),
     max_tokens: opts.maxTokens || 1500,
     system: opts.system,
     messages: opts.messages,
   };
+  if(opts.tools) body.tools = opts.tools;
   if(opts.stream) body.stream = true;
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -1583,6 +1699,7 @@ async function callClaude(opts){
 
   if(!opts.stream){
     const data = await res.json();
+    if(opts.raw) return {content: data.content || [], stopReason: data.stop_reason};
     const txt = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
     if(!txt) throw new Error('Réponse vide.');
     return txt;
@@ -1590,7 +1707,10 @@ async function callClaude(opts){
 
   const reader = res.body.getReader();
   const dec = new TextDecoder();
-  let buf = '', full = '';
+  let buf = '';
+  const rawBlocks = [];
+  const acc = [];
+  let stopReason = null;
   while(true){
     const {done, value} = await reader.read();
     if(done) break;
@@ -1603,16 +1723,40 @@ async function callClaude(opts){
       if(!raw || raw === '[DONE]') continue;
       try{
         const ev = JSON.parse(raw);
-        if(ev.type === 'content_block_delta' && ev.delta?.type === 'text_delta'){
-          full += ev.delta.text;
-          opts.onChunk && opts.onChunk(full);
+        if(ev.type === 'content_block_start'){
+          rawBlocks[ev.index] = ev.content_block;
+          acc[ev.index] = {text:'', inputJson:''};
+        } else if(ev.type === 'content_block_delta'){
+          const a = acc[ev.index];
+          if(!a) continue;
+          if(ev.delta?.type === 'text_delta'){
+            a.text += ev.delta.text;
+            opts.onChunk && opts.onChunk(rawBlocks.map((b,i)=> b && b.type==='text' ? acc[i].text : '').join(''));
+          } else if(ev.delta?.type === 'input_json_delta'){
+            a.inputJson += ev.delta.partial_json;
+          }
+        } else if(ev.type === 'message_delta'){
+          if(ev.delta?.stop_reason) stopReason = ev.delta.stop_reason;
+        } else if(ev.type === 'error'){
+          throw new Error(ev.error?.message || 'Erreur de flux');
         }
-        if(ev.type === 'error') throw new Error(ev.error?.message || 'Erreur de flux');
       }catch(err){ if(err instanceof SyntaxError) continue; throw err; }
     }
   }
-  if(!full.trim()) throw new Error('Réponse vide.');
-  return full.trim();
+  const finalBlocks = rawBlocks.map((raw, i)=>{
+    if(!raw) return null;
+    const out = Object.assign({}, raw);
+    const a = acc[i] || {text:'', inputJson:''};
+    if(raw.type === 'text') out.text = a.text;
+    if(raw.type === 'tool_use' || raw.type === 'server_tool_use'){
+      try{ out.input = JSON.parse(a.inputJson || '{}'); }catch(_){ out.input = {}; }
+    }
+    return out;
+  }).filter(Boolean);
+  if(opts.raw) return {content: finalBlocks, stopReason};
+  const text = finalBlocks.filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
+  if(!text) throw new Error('Réponse vide.');
+  return text;
 }
 
 /* ==========================================================
@@ -1666,20 +1810,24 @@ const RECIPE_MOMENTS = {petitDej:'Petit-déjeuner', midi:'Midi', soir:'Soir', sh
 let recipeMode = 'list';   // 'list' | 'detail' | 'edit'
 let recipeSelId = null;
 let recipeDraft = null;
+let recipeViewPortions = 1;
 let recipeEditIsNew = false;
-let recipeFilters = {moment:'', kcalMin:'', kcalMax:'', protMin:'', protMax:'', carbMin:'', carbMax:'', fatMin:'', fatMax:''};
+let recipeFilters = {moment:'', preset:''};
+
+const RECIPE_PRESETS = {
+  leger: {label:'Léger (< 400 kcal)', test:t=> t.kcal < 400},
+  modere: {label:'Modéré (400-700 kcal)', test:t=> t.kcal >= 400 && t.kcal <= 700},
+  copieux: {label:'Copieux (> 700 kcal)', test:t=> t.kcal > 700},
+  proteine: {label:'Riche en protéines', test:t=> t.kcal > 0 && (t.protein*4/t.kcal) >= 0.25},
+};
 
 function recipeTotals(r){ return ingredientTotals(r.ingredients); }
 
 function matchesRecipeFilters(r){
   const t = recipeTotals(r), f = recipeFilters;
   if(f.moment && r.moment !== f.moment) return false;
-  const inRange = (val, min, max)=>
-    (min === '' || val >= parseFloat(min)) && (max === '' || val <= parseFloat(max));
-  return inRange(t.kcal, f.kcalMin, f.kcalMax) &&
-    inRange(t.protein, f.protMin, f.protMax) &&
-    inRange(t.carbs, f.carbMin, f.carbMax) &&
-    inRange(t.fat, f.fatMin, f.fatMax);
+  if(f.preset && RECIPE_PRESETS[f.preset] && !RECIPE_PRESETS[f.preset].test(t)) return false;
+  return true;
 }
 
 function renderRecettes(){
@@ -1714,16 +1862,11 @@ function recipeFiltersHTML(){
       '<option value="">Tous</option>' +
       Object.keys(RECIPE_MOMENTS).map(k=>'<option value="'+k+'"'+(f.moment===k?' selected':'')+'>'+RECIPE_MOMENTS[k]+'</option>').join('') +
     '</select></div>' +
-    '<div class="grid2">' +
-      '<div class="field"><label>Kcal min</label><input type="number" id="rf-kcalmin" value="'+f.kcalMin+'"></div>' +
-      '<div class="field"><label>Kcal max</label><input type="number" id="rf-kcalmax" value="'+f.kcalMax+'"></div>' +
-      '<div class="field"><label>Prot min (g)</label><input type="number" id="rf-protmin" value="'+f.protMin+'"></div>' +
-      '<div class="field"><label>Prot max (g)</label><input type="number" id="rf-protmax" value="'+f.protMax+'"></div>' +
-      '<div class="field"><label>Gluc min (g)</label><input type="number" id="rf-carbmin" value="'+f.carbMin+'"></div>' +
-      '<div class="field"><label>Gluc max (g)</label><input type="number" id="rf-carbmax" value="'+f.carbMax+'"></div>' +
-      '<div class="field"><label>Lip min (g)</label><input type="number" id="rf-fatmin" value="'+f.fatMin+'"></div>' +
-      '<div class="field"><label>Lip max (g)</label><input type="number" id="rf-fatmax" value="'+f.fatMax+'"></div>' +
-    '</div>' +
+    '<div class="field"><label>Filtre rapide</label>' +
+    '<div class="chips">' +
+      '<div class="chip '+(f.preset===''?'on':'')+'" data-p="">Tous</div>' +
+      Object.keys(RECIPE_PRESETS).map(k=>'<div class="chip '+(f.preset===k?'on':'')+'" data-p="'+k+'">'+RECIPE_PRESETS[k].label+'</div>').join('') +
+    '</div></div>' +
     '<button class="btn block" id="rec-add" style="margin-top:4px">+ Recette</button>' +
     '</div>';
 }
@@ -1746,32 +1889,45 @@ function recipeCardHTML(r){
 function bindRecipeList(){
   document.getElementById('rec-add').addEventListener('click', ()=> openRecipeEdit(null));
   document.querySelectorAll('.recipe-card').forEach(c=>{
-    c.addEventListener('click', ()=>{ recipeSelId = c.dataset.id; recipeMode = 'detail'; renderRecettes(); });
+    c.addEventListener('click', ()=>{
+      recipeSelId = c.dataset.id;
+      const r = getRecipes().find(x=>x.id === recipeSelId);
+      recipeViewPortions = (r && r.portions) || 1;
+      recipeMode = 'detail'; renderRecettes();
+    });
   });
-  const bind = (id, key)=> document.getElementById(id).addEventListener('change', e=>{ recipeFilters[key] = e.target.value; renderRecettes(); });
-  bind('rf-moment','moment');
-  bind('rf-kcalmin','kcalMin'); bind('rf-kcalmax','kcalMax');
-  bind('rf-protmin','protMin'); bind('rf-protmax','protMax');
-  bind('rf-carbmin','carbMin'); bind('rf-carbmax','carbMax');
-  bind('rf-fatmin','fatMin'); bind('rf-fatmax','fatMax');
+  document.getElementById('rf-moment').addEventListener('change', e=>{ recipeFilters.moment = e.target.value; renderRecettes(); });
+  document.querySelectorAll('#recettes-view .chip[data-p]').forEach(c=>{
+    c.addEventListener('click', ()=>{ recipeFilters.preset = c.dataset.p; renderRecettes(); });
+  });
 }
 
 function recipeDetailHTML(r){
+  const basePortions = r.portions || 1;
+  const viewPortions = recipeViewPortions || basePortions;
+  const factor = viewPortions / basePortions;
   const t = recipeTotals(r);
+  const scaled = {kcal:t.kcal*factor, protein:t.protein*factor, carbs:t.carbs*factor, fat:t.fat*factor};
   return '<button class="btn ghost sm sess-back" id="rec-back">← Toutes les recettes</button>' +
     '<div class="card">' +
     (r.photo ? '<img src="'+r.photo+'" style="width:100%;max-height:220px;border-radius:14px;margin-bottom:14px;object-fit:cover">' : '') +
     '<div class="sess-title" style="font-size:1.1rem;margin-bottom:10px">'+esc(r.name)+'</div>' +
+    '<div class="field"><label>Portions souhaitées (recette pour '+basePortions+' de base)</label>' +
+      '<div style="display:flex;align-items:center;gap:10px">' +
+        '<button class="icon-btn" id="rec-portion-minus" style="width:40px;height:40px">−</button>' +
+        '<div style="min-width:32px;text-align:center;font-weight:700">'+viewPortions+'</div>' +
+        '<button class="icon-btn" id="rec-portion-plus" style="width:40px;height:40px">+</button>' +
+      '</div></div>' +
     '<div class="stats">' +
-      '<div class="stat"><div class="v">'+Math.round(t.kcal)+'</div><div class="l">kcal</div></div>' +
-      '<div class="stat"><div class="v">'+Math.round(t.protein)+'g</div><div class="l">Protéines</div></div>' +
-      '<div class="stat"><div class="v">'+Math.round(t.carbs)+'g</div><div class="l">Glucides</div></div>' +
-      '<div class="stat"><div class="v">'+Math.round(t.fat)+'g</div><div class="l">Lipides</div></div>' +
+      '<div class="stat"><div class="v">'+Math.round(scaled.kcal)+'</div><div class="l">kcal</div></div>' +
+      '<div class="stat"><div class="v">'+Math.round(scaled.protein)+'g</div><div class="l">Protéines</div></div>' +
+      '<div class="stat"><div class="v">'+Math.round(scaled.carbs)+'g</div><div class="l">Glucides</div></div>' +
+      '<div class="stat"><div class="v">'+Math.round(scaled.fat)+'g</div><div class="l">Lipides</div></div>' +
     '</div>' +
     '<div class="small muted" style="margin-top:10px">'+(r.prepMinutes ? '⏱ '+r.prepMinutes+' min · ' : '')+esc(RECIPE_MOMENTS[r.moment]||'')+'</div>' +
-    '<h3 class="sec">Ingrédients</h3>' +
+    '<h3 class="sec">Ingrédients'+(factor !== 1 ? ' (pour '+viewPortions+' portion'+(viewPortions>1?'s':'')+')' : '')+'</h3>' +
     (r.ingredients.length
-      ? r.ingredients.map(i=>'<div class="kv"><span class="k">'+esc(i.name)+'</span><span class="v">'+(i.grams||0)+' g</span></div>').join('')
+      ? r.ingredients.map(i=>'<div class="kv"><span class="k">'+esc(i.name)+'</span><span class="v">'+Math.round((parseFloat(i.grams)||0)*factor)+' g</span></div>').join('')
       : '<div class="empty">Aucun ingrédient renseigné.</div>') +
     (r.steps.length
       ? '<h3 class="sec">Préparation</h3><ul class="prep-list">'+r.steps.map(s=>'<li>'+esc(s)+'</li>').join('')+'</ul>'
@@ -1793,6 +1949,15 @@ function bindRecipeDetail(r){
     recipeMode = 'list'; renderRecettes();
   });
   document.getElementById('rec-adjust').addEventListener('click', ()=> openAdjustSheet(r));
+  const minus = document.getElementById('rec-portion-minus'), plus = document.getElementById('rec-portion-plus');
+  if(minus) minus.addEventListener('click', ()=>{
+    recipeViewPortions = Math.max(1, (recipeViewPortions || 1) - 1);
+    renderRecettes();
+  });
+  if(plus) plus.addEventListener('click', ()=>{
+    recipeViewPortions = (recipeViewPortions || 1) + 1;
+    renderRecettes();
+  });
 }
 
 function openRecipeEdit(id){
@@ -1800,7 +1965,8 @@ function openRecipeEdit(id){
   recipeEditIsNew = !existing;
   recipeDraft = existing
     ? JSON.parse(JSON.stringify(existing))
-    : {id:uid(), name:'', photo:null, moment:'midi', prepMinutes:'', ingredients:[], steps:[]};
+    : {id:uid(), name:'', photo:null, moment:'midi', prepMinutes:'', portions:1, ingredients:[], steps:[]};
+  if(!recipeDraft.portions) recipeDraft.portions = 1;
   recipeMode = 'edit';
   renderRecettes();
 }
@@ -1810,7 +1976,7 @@ function recipeEditHTML(){
   const ingRows = r.ingredients.map((ing,i)=>
     '<div class="ex ring-row" data-i="'+i+'">' +
       '<div class="ex-top">' +
-        '<input class="ring-name" data-i="'+i+'" data-f="name" value="'+esc(ing.name)+'" placeholder="Nom de l\'ingrédient">' +
+        '<input class="ring-name" list="ingredient-names" data-i="'+i+'" data-f="name" value="'+esc(ing.name)+'" placeholder="Nom de l\'ingrédient">' +
         '<button class="icon-btn danger ring-del" data-i="'+i+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>' +
       '</div>' +
       '<div class="grid2">' +
@@ -1846,6 +2012,7 @@ function recipeEditHTML(){
       '</select></div>' +
       '<div class="field"><label>Temps de préparation (min)</label><input type="number" id="re-time" value="'+(r.prepMinutes||'')+'"></div>' +
     '</div>' +
+    '<div class="field"><label>Nombre de portions de cette recette</label><input type="number" min="1" step="1" id="re-portions" value="'+(r.portions||1)+'"></div>' +
     '<div class="field"><label>Photo</label><input type="file" id="re-photo" accept="image/*">' +
       (r.photo
         ? '<div style="margin-top:9px"><img class="thumb" src="'+r.photo+'"><button class="btn ghost sm" id="re-photo-clear" style="margin-top:8px">Retirer la photo</button></div>'
@@ -1861,6 +2028,7 @@ function recipeEditHTML(){
       '<input type="file" id="re-import-photo" accept="image/*"></div>' +
     '<div id="re-import-out"></div>' +
     '<h3 class="sec">Ingrédients</h3>' +
+    ingredientNamesDatalist() +
     (r.ingredients.length ? ingRows : '<div class="empty">Aucun ingrédient.</div>') +
     '<button class="btn sec sm block" id="ring-add" style="margin-bottom:16px">+ Ingrédient</button>' +
     '<div class="stats">' +
@@ -1880,9 +2048,10 @@ async function extractRecipeWithAI(text, img){
   if(!getApiKey()) throw new Error('Configure ta clé API dans les réglages (onglet Profil).');
   const system = "Tu extrais une recette de cuisine à partir du texte ou de l'image fourni, pour un pratiquant de musculation qui tient une application de suivi.\n" +
     "Réponds UNIQUEMENT avec un objet JSON strict, sans texte autour, de cette forme exacte :\n" +
-    '{"name":"...", "prepMinutes":30, "ingredients":[{"name":"...", "grams":100, "kcal100":150, "protein100":10, "carbs100":20, "fat100":5}], "steps":["...", "..."]}\n' +
+    '{"name":"...", "prepMinutes":30, "portions":1, "ingredients":[{"name":"...", "grams":100, "kcal100":150, "protein100":10, "carbs100":20, "fat100":5}], "steps":["...", "..."]}\n' +
     "kcal100/protein100/carbs100/fat100 sont les valeurs pour 100 g de CET ingrédient (utilise tes connaissances nutritionnelles usuelles si la source ne les donne pas explicitement). " +
-    "grams est le grammage de cet ingrédient tel qu'utilisé dans la recette, pas pour 100 g. " +
+    "grams est le grammage de cet ingrédient tel qu'utilisé dans la recette (pour la quantité totale de la recette, pas par portion), pas pour 100 g. " +
+    "portions est le nombre de portions que produit la recette telle que décrite par la source (souvent indiqué explicitement, ex: \"pour 4 personnes\") ; mets 1 si rien n'est précisé. " +
     "steps est la liste des étapes de préparation, une chaîne par étape, sans numérotation. " +
     "Si une information manque, fais une estimation raisonnable plutôt que de laisser vide.";
 
@@ -1897,6 +2066,7 @@ async function extractRecipeWithAI(text, img){
   return {
     name: p.name || '',
     prepMinutes: p.prepMinutes || '',
+    portions: Math.max(1, parseInt(p.portions) || 1),
     ingredients: (p.ingredients||[]).map(i=>({
       id:uid(), name:i.name||'', grams:i.grams||'', kcal100:i.kcal100||'',
       protein100:i.protein100||'', carbs100:i.carbs100||'', fat100:i.fat100||'', minGrams:'', maxGrams:'',
@@ -1908,6 +2078,7 @@ async function extractRecipeWithAI(text, img){
 function applyExtractedToDraft(extracted){
   if(extracted.name) recipeDraft.name = extracted.name;
   if(extracted.prepMinutes) recipeDraft.prepMinutes = extracted.prepMinutes;
+  if(extracted.portions) recipeDraft.portions = extracted.portions;
   if(extracted.ingredients.length) recipeDraft.ingredients = extracted.ingredients;
   if(extracted.steps.length) recipeDraft.steps = extracted.steps;
   renderRecettes();
@@ -1923,6 +2094,7 @@ function bindRecipeEdit(){
   document.getElementById('re-name').addEventListener('change', e=>{ recipeDraft.name = e.target.value.trim(); });
   document.getElementById('re-moment').addEventListener('change', e=>{ recipeDraft.moment = e.target.value; });
   document.getElementById('re-time').addEventListener('change', e=>{ recipeDraft.prepMinutes = e.target.value; });
+  document.getElementById('re-portions').addEventListener('change', e=>{ recipeDraft.portions = Math.max(1, parseInt(e.target.value) || 1); });
 
   document.getElementById('re-photo').addEventListener('change', async e=>{
     const f = e.target.files[0];
@@ -1950,7 +2122,17 @@ function bindRecipeEdit(){
   document.querySelectorAll('#recettes-view .ring-row input').forEach(inp=>{
     inp.addEventListener('change', ()=>{
       const i = +inp.dataset.i, f = inp.dataset.f;
-      recipeDraft.ingredients[i][f] = f === 'name' ? inp.value.trim() : inp.value;
+      const ing = recipeDraft.ingredients[i];
+      ing[f] = f === 'name' ? inp.value.trim() : inp.value;
+      if(f === 'name'){
+        const known = lookupIngredient(ing.name);
+        if(known && !ing.kcal100 && !ing.protein100 && !ing.carbs100 && !ing.fat100){
+          ing.kcal100 = known.kcal100; ing.protein100 = known.protein100;
+          ing.carbs100 = known.carbs100; ing.fat100 = known.fat100;
+        }
+      } else {
+        rememberIngredient(ing);
+      }
       renderRecettes();
     });
   });
@@ -2030,6 +2212,7 @@ function bindRecipeEdit(){
     if(idx >= 0) all[idx] = recipeDraft; else all.push(recipeDraft);
     setRecipes(all);
     recipeSelId = recipeDraft.id;
+    recipeViewPortions = recipeDraft.portions || 1;
     recipeDraft = null;
     recipeMode = 'detail';
     renderRecettes();
@@ -2281,9 +2464,192 @@ function ensureConv(){
 }
 function activeConv(){ return ensureConv().find(x=>x.id === curConvId()); }
 
+function saveConv(updated){
+  setConvs(convs().map(x=> x.id === updated.id ? updated : x));
+}
+
+let convMenuOpenId = null;
+
 function renderConvList(){
-  const c = ensureConv(), sel = document.getElementById('conv-sel');
-  sel.innerHTML = c.map(x=>'<option value="'+x.id+'"'+(x.id===curConvId()?' selected':'')+'>'+esc(x.title)+'</option>').join('');
+  const c = ensureConv();
+  const title = document.getElementById('conv-title');
+  const active = c.find(x=>x.id === curConvId());
+  if(title) title.textContent = active ? active.title : '';
+
+  const list = document.getElementById('conv-list');
+  if(!list) return;
+  list.innerHTML = c.map(x=>
+    '<div class="conv-item '+(x.id===curConvId()?'on':'')+'" data-id="'+x.id+'">' +
+      '<span class="conv-item-title">'+esc(x.title)+'</span>' +
+      '<div class="conv-item-menu">' +
+        '<button class="icon-btn conv-item-more" data-id="'+x.id+'" style="width:34px;height:34px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></svg></button>' +
+        (convMenuOpenId === x.id
+          ? '<div class="conv-item-menu-pop">' +
+              '<button data-act="rename" data-id="'+x.id+'">Renommer</button>' +
+              '<button class="danger" data-act="delete" data-id="'+x.id+'">Supprimer</button>' +
+            '</div>'
+          : '') +
+      '</div>' +
+    '</div>'
+  ).join('');
+
+  list.querySelectorAll('.conv-item-title').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const id = el.closest('.conv-item').dataset.id;
+      setCurConv(id); convMenuOpenId = null;
+      closeConvDrawer(); renderConvList(); renderChat(); scrollChat();
+    });
+  });
+  list.querySelectorAll('.conv-item-more').forEach(b=>{
+    b.addEventListener('click', ev=>{
+      ev.stopPropagation();
+      convMenuOpenId = convMenuOpenId === b.dataset.id ? null : b.dataset.id;
+      renderConvList();
+    });
+  });
+  list.querySelectorAll('[data-act="rename"]').forEach(b=>{
+    b.addEventListener('click', ev=>{
+      ev.stopPropagation();
+      const conv = convs().find(x=>x.id === b.dataset.id);
+      const name = prompt('Nouveau nom de la conversation :', conv.title);
+      if(name && name.trim()){ conv.title = name.trim().slice(0,60); saveConv(conv); }
+      convMenuOpenId = null;
+      renderConvList();
+    });
+  });
+  list.querySelectorAll('[data-act="delete"]').forEach(b=>{
+    b.addEventListener('click', ev=>{
+      ev.stopPropagation();
+      const all = convs();
+      if(all.length <= 1 && !all[0].msgs.length){ convMenuOpenId = null; renderConvList(); return; }
+      if(!confirm('Supprimer cette conversation ?')){ convMenuOpenId = null; renderConvList(); return; }
+      const rest = all.filter(x=>x.id !== b.dataset.id);
+      setConvs(rest);
+      if(b.dataset.id === curConvId()){
+        if(rest.length) setCurConv(rest[0].id); else localStorage.removeItem(K.curConv);
+      }
+      convMenuOpenId = null;
+      ensureConv(); renderConvList(); renderChat();
+    });
+  });
+}
+
+function openConvDrawer(){
+  convMenuOpenId = null;
+  renderConvList();
+  document.getElementById('conv-drawer').hidden = false;
+  document.getElementById('conv-drawer-overlay').hidden = false;
+}
+function closeConvDrawer(){
+  document.getElementById('conv-drawer').hidden = true;
+  document.getElementById('conv-drawer-overlay').hidden = true;
+}
+document.getElementById('open-conv-drawer').addEventListener('click', openConvDrawer);
+document.getElementById('close-conv-drawer').addEventListener('click', closeConvDrawer);
+document.getElementById('conv-drawer-overlay').addEventListener('click', closeConvDrawer);
+
+async function autoTitleConversation(c){
+  if(!getApiKey()) return;
+  const firstUserMsg = c.msgs.find(m=>m.role==='user');
+  if(!firstUserMsg) return;
+  try{
+    const title = await callClaude({
+      system: 'Tu résumes le sujet d\'une conversation en un titre très court (3 à 6 mots), en français, sans ponctuation finale, sans guillemets. Réponds uniquement avec le titre.',
+      messages: [{role:'user', content: 'Message de l\'utilisateur : ' + extractText(firstUserMsg.content).slice(0, 400)}],
+      maxTokens: 30,
+    });
+    const clean = title.trim().replace(/^["'.]+|["'.]+$/g, '').slice(0, 60);
+    if(clean){
+      const fresh = convs().find(x=>x.id === c.id);
+      if(fresh && fresh.title === 'Nouvelle conversation'){ fresh.title = clean; saveConv(fresh); renderConvList(); }
+    }
+  }catch(_){ /* renommage automatique best-effort, on garde le titre par défaut si ça échoue */ }
+}
+
+const APP_CHANGE_TOOL = {
+  name: 'propose_app_change',
+  description: "Utilise cet outil UNIQUEMENT quand Esteban te demande explicitement d'ajouter ou modifier quelque chose dans son application (une recette, un palier nutritionnel, un repas fixe petit-déjeuner/shaker, une séance ou un exercice). N'applique JAMAIS le changement toi-même : cet outil affiche seulement une proposition qu'Esteban doit valider manuellement dans le chat avant qu'elle soit enregistrée. Un seul changement par appel. S'il manque des informations importantes (par exemple les macros d'un ingrédient), pose la question plutôt que d'inventer des valeurs.",
+  input_schema: {
+    type: 'object',
+    properties: {
+      kind: {type:'string', enum:['add_recipe','add_session','add_exercise','add_or_update_step','set_meal'], description:'Type de changement proposé.'},
+      summary: {type:'string', description:"Résumé court et clair en français de ce que ce changement va faire concrètement, à afficher à Esteban avant qu'il valide."},
+      payload: {
+        type:'object',
+        description:
+          'Forme exacte attendue selon la valeur de "kind" :\n' +
+          '- add_recipe: {name, moment: "petitDej"|"midi"|"soir"|"shaker", prepMinutes, portions, ingredients:[{name,grams,kcal100,protein100,carbs100,fat100}], steps:[string]}\n' +
+          '- add_session: {name, priority, rest:{hyper,force,endur}, ex:[{name,hyper,force,endur,ss:"down"|"up"|null,drop:bool,note}]}\n' +
+          '- add_exercise: {sessionName, exercise:{name,hyper,force,endur,ss,drop,note}}\n' +
+          '- add_or_update_step: {mode:"seche"|"reverse"|"masse", label, kcal, protein, carbs, fat, note}\n' +
+          '- set_meal: {mode:"seche"|"reverse"|"masse", stepLabel, meal:"petitDej"|"shaker", ingredients:[{name,grams,kcal100,protein100,carbs100,fat100}]}',
+      },
+    },
+    required: ['kind','summary','payload'],
+  },
+};
+
+function applyAppChange(kind, payload){
+  payload = payload || {};
+  if(kind === 'add_recipe'){
+    const all = getRecipes();
+    all.push({
+      id: uid(), name: payload.name || 'Nouvelle recette', photo: null,
+      moment: payload.moment || 'midi', prepMinutes: payload.prepMinutes || '',
+      portions: Math.max(1, parseInt(payload.portions) || 1),
+      ingredients: (payload.ingredients||[]).map(i=>({id:uid(), name:i.name||'', grams:i.grams||'', kcal100:i.kcal100||'', protein100:i.protein100||'', carbs100:i.carbs100||'', fat100:i.fat100||''})),
+      steps: (payload.steps||[]).filter(Boolean),
+    });
+    setRecipes(all);
+  } else if(kind === 'add_session'){
+    const s = getSessions();
+    s.push({
+      id: uid(), name: payload.name || 'Nouvelle séance', priority: payload.priority || '',
+      rest: {hyper:payload.rest?.hyper||'', force:payload.rest?.force||'', endur:payload.rest?.endur||''},
+      ex: (payload.ex||[]).map(e=>({name:e.name||'', hyper:e.hyper||'', force:e.force||'', endur:e.endur||'', ss:e.ss||null, drop:!!e.drop, note:e.note||''})),
+    });
+    setSessions(s);
+  } else if(kind === 'add_exercise'){
+    const s = getSessions();
+    const idx = s.findIndex(x=> x.name.toLowerCase() === (payload.sessionName||'').toLowerCase());
+    if(idx < 0) throw new Error('Séance "' + payload.sessionName + '" introuvable.');
+    const e = payload.exercise || {};
+    s[idx].ex.push({name:e.name||'', hyper:e.hyper||'', force:e.force||'', endur:e.endur||'', ss:e.ss||null, drop:!!e.drop, note:e.note||''});
+    setSessions(s);
+  } else if(kind === 'add_or_update_step'){
+    const d = getModes();
+    const mode = payload.mode;
+    if(!d[mode]) throw new Error('Mode "' + mode + '" inconnu.');
+    let key = Object.keys(d[mode].steps).find(k=> d[mode].steps[k].label === payload.label);
+    if(!key){
+      const nums = Object.keys(d[mode].steps).map(k=> parseInt((k.match(/\d+/)||[0])[0]) || 0);
+      key = 'p' + ((nums.length ? Math.max(...nums) : 1) + 1);
+    }
+    const existing = d[mode].steps[key] || {};
+    d[mode].steps[key] = {
+      label: payload.label || existing.label || key,
+      kcal: payload.kcal ?? existing.kcal,
+      protein: payload.protein ?? existing.protein,
+      carbs: payload.carbs ?? existing.carbs,
+      fat: payload.fat ?? existing.fat,
+      note: payload.note ?? existing.note ?? '',
+      meals: existing.meals,
+    };
+    setModes(d);
+  } else if(kind === 'set_meal'){
+    const d = getModes();
+    const mode = payload.mode;
+    if(!d[mode]) throw new Error('Mode "' + mode + '" inconnu.');
+    const stepKey = Object.keys(d[mode].steps).find(k=> d[mode].steps[k].label === payload.stepLabel);
+    if(!stepKey) throw new Error('Palier "' + payload.stepLabel + '" introuvable dans ' + mode + '.');
+    if(!MEALS[payload.meal]) throw new Error('Repas "' + payload.meal + '" inconnu.');
+    const step = d[mode].steps[stepKey];
+    ensureMeals(step);
+    step.meals[payload.meal] = (payload.ingredients||[]).map(i=>({id:uid(), name:i.name||'', grams:i.grams||'', kcal100:i.kcal100||'', protein100:i.protein100||'', carbs100:i.carbs100||'', fat100:i.fat100||''}));
+    setModes(d);
+  } else {
+    throw new Error('Type de changement inconnu : ' + kind);
+  }
 }
 
 function liveContext(){
@@ -2310,39 +2676,61 @@ function liveContext(){
 function fmtMsg(t){
   return esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
 }
+function extractText(content){
+  if(typeof content === 'string') return content;
+  if(Array.isArray(content)) return content.filter(b=>b.type==='text').map(b=>b.text).join('\n');
+  return '';
+}
+function extractImageDataUrl(content){
+  if(!Array.isArray(content)) return null;
+  const img = content.find(b=>b.type==='image');
+  return img ? 'data:' + img.source.media_type + ';base64,' + img.source.data : null;
+}
+function renderMsgHTML(m){
+  const text = extractText(m.content);
+  const img = extractImageDataUrl(m.content);
+  let html = '';
+  if(text || img){
+    html += '<div class="msg '+(m.role==='user'?'user':'bot')+'">' +
+      (img ? '<img class="chat-img" src="'+img+'">' : '') +
+      (text ? fmtMsg(text) : '') +
+      '</div>';
+  }
+  if(m.pendingAction){
+    const a = m.pendingAction;
+    html += '<div class="action-card '+a.status+'" data-mid="'+m.id+'">' +
+      '<div class="action-summary">🔧 '+esc(a.summary)+'</div>' +
+      (a.status === 'pending'
+        ? '<div class="btn-row" style="margin-top:8px">' +
+            '<button class="btn sm" data-act="accept" data-mid="'+m.id+'" style="flex:1">Valider</button>' +
+            '<button class="btn sec sm" data-act="reject" data-mid="'+m.id+'" style="flex:1">Refuser</button>' +
+          '</div>'
+        : '<div class="small muted" style="margin-top:6px">'+(a.status==='applied' ? '✅ Appliqué dans l\'app.' : '❌ Non appliqué.')+'</div>') +
+      '</div>';
+  }
+  return html;
+}
 function renderChat(){
   const c = activeConv(), box = document.getElementById('msgs');
   if(!c.msgs.length){
     box.innerHTML = '<div class="chat-empty">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5a3 3 0 0 1-3 3H8.5L4.5 21v-4.5h-.1a3 3 0 0 1-.4-1.5v-8a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3Z"/><path d="M12 7.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8Z"/></svg>' +
       '<div>Pose une question sur ton programme, ta nutrition ou ta progression.</div>' +
-      '<div class="small">Il connaît ta phase, tes macros et tes dernières pesées.</div></div>';
+      '<div class="small">Il connaît ta phase, tes macros et tes dernières pesées. Il peut aussi te proposer d\'ajouter ou modifier des éléments dans l\'app, à valider par toi.</div></div>';
     return;
   }
-  box.innerHTML = c.msgs.map(m=>'<div class="msg '+(m.role==='user'?'user':'bot')+'">'+fmtMsg(m.content)+'</div>').join('');
+  box.innerHTML = c.msgs.map(renderMsgHTML).join('');
 }
 function scrollChat(){
   const main = document.getElementById('main');
   requestAnimationFrame(()=>{ main.scrollTop = main.scrollHeight; });
 }
 
-document.getElementById('conv-sel').addEventListener('change', e=>{
-  setCurConv(e.target.value); renderChat(); scrollChat();
-});
 document.getElementById('new-conv').addEventListener('click', ()=>{
   const c = convs();
   const n = {id:uid(), title:'Nouvelle conversation', created:Date.now(), msgs:[]};
   c.unshift(n); setConvs(c); setCurConv(n.id);
   renderConvList(); renderChat();
-});
-document.getElementById('del-conv').addEventListener('click', ()=>{
-  const c = convs();
-  if(c.length <= 1 && !c[0].msgs.length) return;
-  if(!confirm('Supprimer cette conversation ?')) return;
-  const rest = c.filter(x=>x.id !== curConvId());
-  setConvs(rest);
-  if(rest.length) setCurConv(rest[0].id); else localStorage.removeItem(K.curConv);
-  ensureConv(); renderConvList(); renderChat();
 });
 
 const chatInput = document.getElementById('chat-input');
@@ -2351,26 +2739,40 @@ chatInput.addEventListener('input', ()=>{
   chatInput.style.height = Math.min(130, chatInput.scrollHeight) + 'px';
 });
 
-async function sendMessage(){
-  const text = chatInput.value.trim();
-  if(!text) return;
-  if(!getApiKey()){
-    document.getElementById('msgs').insertAdjacentHTML('beforeend', '<div class="err">Configure ta clé API dans les réglages (onglet Profil).</div>');
-    scrollChat();
-    return;
+let chatPendingImage = null;
+document.getElementById('chat-attach').addEventListener('click', ()=> document.getElementById('chat-img-input').click());
+document.getElementById('chat-img-input').addEventListener('change', async e=>{
+  const f = e.target.files[0];
+  const prev = document.getElementById('chat-img-prev');
+  if(!f) return;
+  prev.innerHTML = '<div class="loading"><div class="spin"></div>Traitement...</div>';
+  try{
+    chatPendingImage = await resizeImage(f);
+    prev.innerHTML = '<img src="'+chatPendingImage.dataUrl+'"><div class="btn-row"><button class="btn ghost sm" id="chat-img-clear">Retirer la photo</button></div>';
+    document.getElementById('chat-img-clear').addEventListener('click', ()=>{ chatPendingImage = null; prev.innerHTML = ''; e.target.value = ''; });
+  }catch(_){
+    chatPendingImage = null;
+    prev.innerHTML = '<div class="err">Image illisible.</div>';
   }
+});
+
+let webSearchOn = localStorage.getItem(K.webSearch) === '1';
+const websearchBtn = document.getElementById('chat-websearch');
+websearchBtn.classList.toggle('on', webSearchOn);
+websearchBtn.addEventListener('click', ()=>{
+  webSearchOn = !webSearchOn;
+  localStorage.setItem(K.webSearch, webSearchOn ? '1' : '0');
+  websearchBtn.classList.toggle('on', webSearchOn);
+});
+
+function coachTools(){
+  const tools = [APP_CHANGE_TOOL];
+  if(webSearchOn) tools.push({type:'web_search_20250305', name:'web_search', max_uses:3});
+  return tools;
+}
+
+async function runCoachTurn(c){
   const btn = document.getElementById('send-msg');
-  const all = convs(), c = all.find(x=>x.id === curConvId());
-
-  c.msgs.push({role:'user', content:text});
-  const renamed = c.title === 'Nouvelle conversation';
-  if(renamed) c.title = text.slice(0, 40) + (text.length > 40 ? '...' : '');
-  setConvs(all);
-  if(renamed) renderConvList();
-  chatInput.value = '';
-  chatInput.style.height = 'auto';
-  renderChat(); scrollChat();
-
   btn.disabled = true;
   const box = document.getElementById('msgs');
   const bubble = document.createElement('div');
@@ -2380,21 +2782,95 @@ async function sendMessage(){
   scrollChat();
 
   try{
-    const reply = await callClaude({
-      system: COACH_SYSTEM + '\n\n' + liveContext(),
+    const effort = getEffort();
+    const res = await callClaude({
+      system: COACH_SYSTEM + '\n\n' + liveContext() + '\n\n' + EFFORT_LEVELS[effort].hint,
       messages: c.msgs.map(m=>({role:m.role, content:m.content})),
-      maxTokens: 2000,
+      maxTokens: EFFORT_LEVELS[effort].maxTokens,
+      tools: coachTools(),
+      raw: true,
       stream: true,
-      onChunk: partial=>{ bubble.innerHTML = fmtMsg(partial); },
+      onChunk: partial=>{ if(partial) bubble.innerHTML = fmtMsg(partial); },
     });
-    c.msgs.push({role:'assistant', content:reply});
-    setConvs(all);
+    const blocks = res.content || [];
+    const newMsg = {id:uid(), role:'assistant', content: blocks};
+    const toolBlock = blocks.find(b=> b.type === 'tool_use' && b.name === 'propose_app_change');
+    if(toolBlock){
+      newMsg.pendingAction = {
+        toolUseId: toolBlock.id,
+        kind: toolBlock.input && toolBlock.input.kind,
+        payload: toolBlock.input && toolBlock.input.payload,
+        summary: (toolBlock.input && toolBlock.input.summary) || 'Modification proposée',
+        status: 'pending',
+      };
+    }
+    c.msgs.push(newMsg);
+    saveConv(c);
+    bubble.remove();
     renderChat();
+    if(c.msgs.filter(m=>m.role==='user').length === 1) autoTitleConversation(c);
   }catch(err){
     bubble.outerHTML = '<div class="err">' + esc(err.message) + '</div>';
-    c.msgs.pop();
-    setConvs(all);
   }finally{ btn.disabled = false; }
+}
+
+document.getElementById('msgs').addEventListener('click', e=>{
+  const b = e.target.closest('[data-act]');
+  if(!b) return;
+  handlePendingAction(b.dataset.mid, b.dataset.act);
+});
+
+async function handlePendingAction(mid, act){
+  const c = activeConv();
+  const msg = c.msgs.find(x=>x.id === mid);
+  if(!msg || !msg.pendingAction || msg.pendingAction.status !== 'pending') return;
+  const a = msg.pendingAction;
+  let resultText;
+  if(act === 'accept'){
+    try{
+      applyAppChange(a.kind, a.payload);
+      a.status = 'applied';
+      resultText = 'Modification appliquée avec succès dans l\'application.';
+    }catch(err){
+      a.status = 'rejected';
+      resultText = 'Échec de l\'application : ' + err.message;
+    }
+  } else {
+    a.status = 'rejected';
+    resultText = "L'utilisateur a refusé cette modification, ne l'applique pas et n'insiste pas.";
+  }
+  c.msgs.push({id:uid(), role:'user', content:[{type:'tool_result', tool_use_id:a.toolUseId, content: resultText}]});
+  saveConv(c);
+  renderChat(); scrollChat();
+  await runCoachTurn(c);
+}
+
+async function sendMessage(){
+  const text = chatInput.value.trim();
+  if(!text && !chatPendingImage) return;
+  if(!getApiKey()){
+    document.getElementById('msgs').insertAdjacentHTML('beforeend', '<div class="err">Configure ta clé API dans les réglages (onglet Profil).</div>');
+    scrollChat();
+    return;
+  }
+  const c = activeConv();
+
+  let content = text;
+  if(chatPendingImage){
+    content = [
+      {type:'image', source:{type:'base64', media_type:chatPendingImage.mediaType, data:chatPendingImage.base64}},
+      {type:'text', text: text || 'Regarde cette photo.'},
+    ];
+  }
+  c.msgs.push({id:uid(), role:'user', content});
+  saveConv(c);
+  chatInput.value = '';
+  chatInput.style.height = 'auto';
+  chatPendingImage = null;
+  document.getElementById('chat-img-prev').innerHTML = '';
+  renderChat(); scrollChat();
+
+  await runCoachTurn(c);
 }
 document.getElementById('send-msg').addEventListener('click', sendMessage);
 
@@ -2471,8 +2947,13 @@ function openSettings(){
     '<div class="field"><label>Clé API Anthropic</label>' +
     '<input type="password" id="k-input" placeholder="'+(key ? 'Clé enregistrée, se termine par ' + esc(key.slice(-4)) : 'sk-ant-...')+'"></div>' +
     '<div class="field"><label>Modèle</label><select id="k-model">' +
-      '<option value="claude-sonnet-5"'+(getModel()==='claude-sonnet-5'?' selected':'')+'>Sonnet 5 (rapide, recommandé)</option>' +
-      '<option value="claude-opus-5"'+(getModel()==='claude-opus-5'?' selected':'')+'>Opus 5 (plus puissant, plus cher)</option>' +
+      '<option value="claude-haiku-4-5-20251001"'+(getModel()==='claude-haiku-4-5-20251001'?' selected':'')+'>Haiku 4.5 (le plus rapide, le moins cher)</option>' +
+      '<option value="claude-sonnet-5"'+(getModel()==='claude-sonnet-5'?' selected':'')+'>Sonnet 5 (recommandé)</option>' +
+      '<option value="claude-opus-5"'+(getModel()==='claude-opus-5'?' selected':'')+'>Opus 5 (le plus puissant, plus cher)</option>' +
+      '<option value="claude-fable-5"'+(getModel()==='claude-fable-5'?' selected':'')+'>Fable 5</option>' +
+    '</select></div>' +
+    '<div class="field"><label>Niveau d\'effort</label><select id="k-effort">' +
+      Object.keys(EFFORT_LEVELS).map(k=>'<option value="'+k+'"'+(getEffort()===k?' selected':'')+'>'+EFFORT_LEVELS[k].label+'</option>').join('') +
     '</select></div>' +
     '<div class="btn-row"><button class="btn" id="k-save" style="flex:1">Enregistrer</button>' +
     (key ? '<button class="btn danger sm" id="k-clear">Effacer</button>' : '') + '</div>' +
@@ -2482,6 +2963,7 @@ function openSettings(){
     const v = document.getElementById('k-input').value.trim();
     if(v) setApiKey(v);
     setModel(document.getElementById('k-model').value);
+    setEffort(document.getElementById('k-effort').value);
     closeSheet();
   });
   const cb = document.getElementById('k-clear');
