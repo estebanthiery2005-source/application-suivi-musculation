@@ -28,7 +28,7 @@
     --danger:#FF6B6B;
     --display:'Unbounded',system-ui,sans-serif;
     --body:'Inter',system-ui,-apple-system,sans-serif;
-    --tabbar-h:64px;
+    --tabbar-h:56px;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   [hidden]{display:none !important;}
@@ -96,7 +96,7 @@
     font-size:.65rem;
     font-weight:600;
     letter-spacing:.01em;
-    padding:9px 4px 8px;
+    padding:7px 4px 6px;
     height:var(--tabbar-h);
     display:flex;
     flex-direction:column;
@@ -144,6 +144,7 @@
     padding:16px;
     margin-bottom:14px;
   }
+  .sess-card{cursor:pointer;}
   .card-head{
     display:flex;
     align-items:center;
@@ -624,11 +625,6 @@
         </div>
         <button class="btn block" id="analyze-w">Analyser</button>
         <div id="w-out"></div>
-        <h3 class="sec">Ou saisir la moyenne</h3>
-        <div style="display:flex;gap:8px">
-          <input type="number" step="0.1" id="w-manual" placeholder="81.4" inputmode="decimal">
-          <button class="btn sec" id="w-manual-btn" style="flex:none">Ajouter</button>
-        </div>
       </div>
       <div class="card">
         <div class="card-head"><h2>Historique</h2></div>
@@ -1122,7 +1118,7 @@ let openSessionIdx = null;
 
 function sessionCardHTML(s, si){
   const names = s.ex.map(e=>e.name).filter(Boolean).join(', ');
-  return '<div class="card">' +
+  return '<div class="card sess-card" data-s="'+si+'">' +
     '<div class="sess-head"><span class="sess-title">'+esc(s.name)+'</span>' +
     '<button class="icon-btn sess-edit" data-s="'+si+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></div>' +
     (s.priority ? '<div class="sess-prio">'+esc(s.priority)+'</div>' : '') +
@@ -1179,8 +1175,8 @@ function renderSessions(){
   if(openSessionIdx === null){
     if(listHead) listHead.hidden = false;
     box.innerHTML = sessions.map((s, si)=> sessionCardHTML(s, si)).join('');
-    box.querySelectorAll('.sess-open').forEach(b=> b.addEventListener('click', ()=>{ openSessionIdx = +b.dataset.s; renderSessions(); }));
-    box.querySelectorAll('.sess-edit').forEach(b=> b.addEventListener('click', ()=> editSession(+b.dataset.s)));
+    box.querySelectorAll('.sess-card').forEach(c=> c.addEventListener('click', ()=>{ openSessionIdx = +c.dataset.s; renderSessions(); }));
+    box.querySelectorAll('.sess-edit').forEach(b=> b.addEventListener('click', (ev)=>{ ev.stopPropagation(); editSession(+b.dataset.s); }));
     return;
   }
 
@@ -2266,14 +2262,6 @@ document.getElementById('analyze-w').addEventListener('click', async ()=>{
   }finally{ btn.disabled = false; }
 });
 
-document.getElementById('w-manual-btn').addEventListener('click', ()=>{
-  const v = parseFloat(document.getElementById('w-manual').value);
-  if(!v){ alert('Indique une moyenne valide.'); return; }
-  const e = addWeight(v, 'manuel');
-  document.getElementById('w-manual').value = '';
-  renderWeights(); evaluateWeight(e); renderState();
-});
-
 /* ==========================================================
    14. COACH
    ========================================================== */
@@ -2310,8 +2298,12 @@ function liveContext(){
     const last = h.slice(-4).map(e=> fmtShort(e.date) + ' ' + e.average + ' kg').join(', ');
     L.push('Dernières moyennes hebdomadaires : ' + last + '.');
   }
-  const names = getSessions().map(x=>x.name).join(', ');
-  if(names) L.push('Séances du programme : ' + names + '.');
+  const sessions = getSessions();
+  if(sessions.length){
+    L.push('Détail complet du programme de séances (JSON) :');
+    L.push(JSON.stringify(sessions));
+    L.push('Légende JSON séances : chaque séance a un nom, une priorité (groupes musculaires ciblés), un temps de repos par phase (hyper/force/endur), et une liste d\'exercices ex[] ; chaque exercice a un nom et des séries/reps propres à chaque phase (champs hyper/force/endur), un éventuel superset (ss: "down"/"up"), un dropset (drop), et une note technique (note).');
+  }
   return 'CONTEXTE ACTUEL, DONNÉES RÉELLES DE SON APP\n' + L.join('\n');
 }
 
@@ -2393,11 +2385,11 @@ async function sendMessage(){
       messages: c.msgs.map(m=>({role:m.role, content:m.content})),
       maxTokens: 2000,
       stream: true,
-      onChunk: partial=>{ bubble.innerHTML = fmtMsg(partial); scrollChat(); },
+      onChunk: partial=>{ bubble.innerHTML = fmtMsg(partial); },
     });
     c.msgs.push({role:'assistant', content:reply});
     setConvs(all);
-    renderChat(); scrollChat();
+    renderChat();
   }catch(err){
     bubble.outerHTML = '<div class="err">' + esc(err.message) + '</div>';
     c.msgs.pop();
