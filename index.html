@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -106,17 +107,41 @@
   .screen.active{display:block;animation:fade .2s ease;}
   @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
 
-  /* ---------- Tab bar ---------- */
-  .tabbar{
+  /* ---------- Tab bar (liquid glass) ---------- */
+  .tabbar-wrap{
     flex:none;
+    padding:0 12px calc(env(safe-area-inset-bottom) + 10px);
+  }
+  .tabbar{
+    position:relative;
     display:flex;
-    background:var(--panel-translucent);
-    backdrop-filter:blur(18px);
-    -webkit-backdrop-filter:blur(18px);
-    border-top:1px solid var(--border);
-    padding-bottom:env(safe-area-inset-bottom);
+    background:rgba(255,255,255,.08);
+    backdrop-filter:blur(24px) saturate(1.8);
+    -webkit-backdrop-filter:blur(24px) saturate(1.8);
+    border:1px solid rgba(255,255,255,.14);
+    border-radius:24px;
+    box-shadow:0 8px 28px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.18);
+    padding:5px;
+    overflow:hidden;
+  }
+  :root[data-theme="light"] .tabbar{
+    background:rgba(255,255,255,.55);
+    border-color:rgba(255,255,255,.7);
+    box-shadow:0 8px 28px rgba(6,16,22,.12), inset 0 1px 0 rgba(255,255,255,.6);
+  }
+  .tabbar-pill{
+    position:absolute;
+    top:5px;bottom:5px;left:5px;
+    width:calc(25% - 2.5px);
+    background:var(--accent-soft);
+    border:1px solid var(--accent-line);
+    border-radius:19px;
+    transition:transform .32s cubic-bezier(.16,1,.3,1);
+    pointer-events:none;
   }
   .tabbar button{
+    position:relative;
+    z-index:1;
     flex:1;
     background:none;
     border:none;
@@ -126,7 +151,7 @@
     font-weight:600;
     letter-spacing:.01em;
     padding:7px 4px 6px;
-    height:var(--tabbar-h);
+    height:calc(var(--tabbar-h) - 10px);
     display:flex;
     flex-direction:column;
     align-items:center;
@@ -335,6 +360,8 @@
   .media-viewer{position:fixed;inset:0;background:rgba(6,16,22,.94);z-index:110;display:flex;align-items:center;justify-content:center;}
   .media-viewer img,.media-viewer video{max-width:94%;max-height:88%;border-radius:10px;}
   .media-viewer .icon-btn{position:absolute;top:calc(env(safe-area-inset-top) + 14px);right:16px;background:rgba(255,255,255,.12);color:#fff;}
+  .media-viewer .media-viewer-nav{top:50%;transform:translateY(-50%);}
+  .media-viewer .media-viewer-nav:disabled{opacity:.25;pointer-events:none;}
   .stat{
     background:var(--panel2);
     border:1px solid var(--border);
@@ -426,6 +453,18 @@
   .tag.ss{background:rgba(119,93,244,.18);color:var(--accent-text);}
   .tag.drop{background:rgba(255,182,72,.14);color:var(--warn);}
   .ex-note{font-size:.74rem;color:var(--muted);line-height:1.45;margin-top:9px;padding-left:11px;border-left:2px solid var(--border);}
+
+  /* ---------- Exercise editor (Hevy-style) ---------- */
+  .fx-head{display:flex;align-items:center;gap:8px;margin-bottom:2px;}
+  .fx-name-input{flex:1;background:none;border:none;border-bottom:1px solid transparent;font-family:var(--display);font-weight:700;font-size:.95rem;color:var(--text);padding:4px 0;}
+  .fx-name-input:focus{outline:none;border-bottom-color:var(--accent-line);}
+  .ex-set-input{flex:1;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:7px 5px;text-align:center;}
+  .ex-set-input .p{font-size:.6rem;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.05em;margin-bottom:3px;}
+  .ex-set-input input{width:100%;background:none;border:none;text-align:center;font-size:.8rem;font-weight:700;color:var(--text);padding:0;font-family:var(--body);}
+  .ex-set-input input:focus{outline:none;}
+  .fx-secondary{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+  .fx-secondary label{font-size:.68rem;}
+  .fx-note-toggle{background:none;border:none;color:var(--muted);font-size:.78rem;line-height:1.4;padding:8px 0 0;cursor:pointer;text-align:left;width:100%;}
 
   /* ---------- Meal ingredient rows ---------- */
   .ing-name, .ring-name{
@@ -580,6 +619,30 @@
   .kv:last-child{border-bottom:none;}
   .kv .k{color:var(--muted);}
   .kv .v{font-weight:600;text-align:right;}
+
+  /* ---------- App modal (replaces native alert/confirm/prompt) ---------- */
+  .confirm-overlay{
+    position:fixed;inset:0;background:rgba(6,16,22,.82);
+    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    z-index:200;display:flex;align-items:center;justify-content:center;
+    padding:20px;
+    animation:cf-in .15s ease;
+  }
+  @keyframes cf-in{from{opacity:0;}to{opacity:1;}}
+  .confirm-card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:20px;
+    width:100%;max-width:340px;
+    padding:20px;
+    animation:cf-up .2s cubic-bezier(.16,1,.3,1);
+  }
+  @keyframes cf-up{from{transform:scale(.94) translateY(6px);opacity:0;}to{transform:none;opacity:1;}}
+  .confirm-card h3{font-family:var(--display);font-weight:700;font-size:.98rem;margin:0 0 8px;}
+  .confirm-card p{font-size:.86rem;line-height:1.5;color:var(--text);margin:0;white-space:pre-wrap;}
+  .confirm-card input{margin-top:12px;}
+  .confirm-actions{margin-top:18px;}
+  .confirm-actions .btn{flex:1;}
 </style>
 </head>
 <body>
@@ -798,7 +861,9 @@
 
 </main>
 
+<div class="tabbar-wrap">
 <nav class="tabbar">
+  <div class="tabbar-pill" id="tabbar-pill"></div>
   <button data-tab="prog" class="active">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5v11M3.5 9v5M17.5 6.5v11M20.5 9v5M6.5 12h11"/></svg>
     Programme
@@ -816,6 +881,7 @@
     Profil
   </button>
 </nav>
+</div>
 
 <div class="overlay" id="overlay" hidden>
   <div class="sheet" id="sheet"></div>
@@ -1052,16 +1118,61 @@ function esc(s){ const d = document.createElement('div'); d.textContent = s == n
 function uid(){ return 'x' + Math.random().toString(36).slice(2,10); }
 function pad(n){ return String(n).padStart(2,'0'); }
 
+/* ---------- App modal (replaces native alert/confirm/prompt) ---------- */
+function appModal(opts){
+  return new Promise(resolve=>{
+    const ov = document.createElement('div');
+    ov.className = 'confirm-overlay';
+    ov.innerHTML = '<div class="confirm-card">' +
+      (opts.title ? '<h3>'+esc(opts.title)+'</h3>' : '') +
+      '<p>'+esc(opts.message)+'</p>' +
+      (opts.input ? '<input type="text" id="cm-input">' : '') +
+      '<div class="btn-row confirm-actions">' +
+        (opts.cancelText !== null ? '<button class="btn sec" id="cm-cancel">'+esc(opts.cancelText || 'Annuler')+'</button>' : '') +
+        '<button class="btn '+(opts.danger ? 'danger' : '')+'" id="cm-ok">'+esc(opts.confirmText || 'OK')+'</button>' +
+      '</div></div>';
+    document.body.appendChild(ov);
+    const inputEl = ov.querySelector('#cm-input');
+    if(inputEl){ inputEl.value = opts.inputValue || ''; inputEl.focus(); inputEl.select(); }
+    const cancelVal = opts.input ? null : false;
+    function cleanup(v){ ov.remove(); resolve(v); }
+    const cancelBtn = ov.querySelector('#cm-cancel');
+    if(cancelBtn) cancelBtn.addEventListener('click', ()=> cleanup(cancelVal));
+    ov.querySelector('#cm-ok').addEventListener('click', ()=> cleanup(opts.input ? (inputEl.value || '') : true));
+    ov.addEventListener('click', e=>{ if(e.target === ov) cleanup(cancelVal); });
+    if(inputEl) inputEl.addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); cleanup(inputEl.value || ''); } });
+  });
+}
+function appConfirm(message, opts){
+  opts = opts || {};
+  return appModal({message, title:opts.title, confirmText:opts.confirmText || 'Confirmer', cancelText:opts.cancelText || 'Annuler', danger:opts.danger !== false});
+}
+function appAlert(message, title){
+  return appModal({message, title, confirmText:'OK', cancelText:null, danger:false});
+}
+function appPrompt(message, defaultValue){
+  return appModal({message, input:true, inputValue:defaultValue, confirmText:'OK', cancelText:'Annuler', danger:false});
+}
+
 /* ==========================================================
    4. NAVIGATION
    ========================================================== */
 const TITLES = {prog:'Programme', nutri:'Nutrition', coach:'Coach IA', profil:'Profil'};
+
+function moveTabbarPill(){
+  const active = document.querySelector('.tabbar button.active');
+  const pill = document.getElementById('tabbar-pill');
+  if(!active || !pill) return;
+  pill.style.transform = 'translateX(' + active.offsetLeft + 'px)';
+}
+window.addEventListener('resize', moveTabbarPill);
 
 document.querySelectorAll('.tabbar button').forEach(b=>{
   b.addEventListener('click', ()=>{
     document.querySelectorAll('.tabbar button').forEach(x=>x.classList.remove('active'));
     document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
     b.classList.add('active');
+    moveTabbarPill();
     const t = b.dataset.tab;
     document.getElementById('screen-'+t).classList.add('active');
     document.getElementById('page-title').textContent = TITLES[t];
@@ -1265,8 +1376,7 @@ function sessionDetailHTML(s, si, cur){
       '<div class="ex-set '+(k===cur?'now':'')+'"><div class="p">'+PH_SHORT[k]+'</div><div class="v">'+esc(e[k]||'—')+'</div></div>'
     ).join('');
     return '<div class="ex">' +
-      '<div class="ex-top"><span class="ex-idx">'+(i+1)+'</span><span class="ex-name">'+esc(exNameForPhase(e, cur))+'</span>' +
-      '<button class="icon-btn ex-edit" data-s="'+si+'" data-e="'+i+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="12" cy="19" r="1.3"/></svg></button></div>' +
+      '<div class="ex-top"><span class="ex-idx">'+(i+1)+'</span><span class="ex-name">'+esc(exNameForPhase(e, cur))+'</span></div>' +
       '<div class="ex-sets">'+sets+'</div>' +
       (tags.length ? '<div class="ex-tags">'+tags.join('')+'</div>' : '') +
       (e.note ? '<div class="ex-note">'+esc(e.note)+'</div>' : '') +
@@ -1289,52 +1399,16 @@ function openSessionActions(si){
   openSheet(
     sheetHead('Actions de la séance') +
     '<div class="btn-row" style="flex-direction:column;gap:8px">' +
-      '<button class="btn sec block" id="sa-edit">Modifier nom, repos</button>' +
-      '<button class="btn sec block" id="sa-reorder">Réorganiser les exercices</button>' +
+      '<button class="btn sec block" id="sa-edit">Modifier la séance</button>' +
       '<button class="btn danger block" id="sa-del">Supprimer la séance</button>' +
     '</div>'
   );
-  document.getElementById('sa-edit').addEventListener('click', ()=>{ closeSheet(); editSession(si); });
-  document.getElementById('sa-reorder').addEventListener('click', ()=>{ closeSheet(); openReorderSheet(si); });
-  document.getElementById('sa-del').addEventListener('click', ()=>{
+  document.getElementById('sa-edit').addEventListener('click', ()=>{ closeSheet(); editSessionFull(si); });
+  document.getElementById('sa-del').addEventListener('click', async ()=>{
     const sessions = getSessions();
-    if(!confirm('Supprimer la séance ' + sessions[si].name + ' et tous ses exercices ?')) return;
+    if(!await appConfirm('Supprimer la séance ' + sessions[si].name + ' et tous ses exercices ?')) return;
     sessions.splice(si,1); setSessions(sessions); closeSheet();
     openSessionIdx = null; renderSessions();
-  });
-}
-
-function openReorderSheet(si){
-  const sessions = getSessions();
-  const s = sessions[si];
-  openSheet(
-    sheetHead('Réorganiser · ' + s.name) +
-    '<div id="reorder-list">' +
-    s.ex.map((e,i)=>
-      '<div class="ex" style="display:flex;align-items:center;gap:10px;padding:10px 12px">' +
-        '<span class="ex-idx">'+(i+1)+'</span>' +
-        '<span style="flex:1;font-size:.85rem">'+esc(e.name)+'</span>' +
-        '<button class="icon-btn reorder-up" data-i="'+i+'" '+(i===0?'disabled':'')+' style="width:36px;height:36px">↑</button>' +
-        '<button class="icon-btn reorder-down" data-i="'+i+'" '+(i===s.ex.length-1?'disabled':'')+' style="width:36px;height:36px">↓</button>' +
-      '</div>'
-    ).join('') +
-    '</div>'
-  );
-  document.querySelectorAll('#sheet .reorder-up').forEach(b=>{
-    b.addEventListener('click', ()=>{
-      const i = +b.dataset.i;
-      if(i === 0) return;
-      [s.ex[i-1], s.ex[i]] = [s.ex[i], s.ex[i-1]];
-      setSessions(sessions); openReorderSheet(si); renderSessions();
-    });
-  });
-  document.querySelectorAll('#sheet .reorder-down').forEach(b=>{
-    b.addEventListener('click', ()=>{
-      const i = +b.dataset.i;
-      if(i === s.ex.length-1) return;
-      [s.ex[i+1], s.ex[i]] = [s.ex[i], s.ex[i+1]];
-      setSessions(sessions); openReorderSheet(si); renderSessions();
-    });
   });
 }
 
@@ -1365,134 +1439,161 @@ function renderSessions(){
   const si = openSessionIdx;
   box.innerHTML = sessionDetailHTML(sessions[si], si, cur);
   box.querySelector('.sess-back').addEventListener('click', ()=>{ openSessionIdx = null; renderSessions(); });
-  box.querySelectorAll('.ex-edit').forEach(b=> b.addEventListener('click', ()=> editExercise(+b.dataset.s, +b.dataset.e)));
-  box.querySelectorAll('.ex-add').forEach(b=> b.addEventListener('click', ()=> editExercise(+b.dataset.s, -1)));
+  box.querySelectorAll('.ex-add').forEach(b=> b.addEventListener('click', ()=>{
+    const si = +b.dataset.s;
+    const sessions = getSessions();
+    sessions[si].ex.push({id:uid(), name:'', muscle:'', hyper:'', force:'', endur:'', hyperName:'', forceName:'', endurName:'', ss:null, drop:false, note:''});
+    setSessions(sessions); renderSessions(); editSessionFull(si);
+  }));
   box.querySelectorAll('.sess-more').forEach(b=> b.addEventListener('click', ()=> openSessionActions(+b.dataset.s)));
 }
 
-function editExercise(si, ei){
+function exerciseFormBlockHTML(e, i, total, menuOpen){
+  const sets = PH_KEYS.map(k=>
+    '<div class="ex-set-input"><div class="p">'+PH_SHORT[k]+'</div><input class="fx-f" data-i="'+i+'" data-f="'+k+'" value="'+esc(e[k])+'" placeholder="4x8-10"></div>'
+  ).join('');
+  const notePreview = e.note ? '📝 '+esc(e.note.length>70?e.note.slice(0,70)+'…':e.note) : '+ Ajouter une note technique';
+  return '<div class="card" style="margin-bottom:10px" data-ei="'+i+'">' +
+    '<div class="fx-head">' +
+      '<input class="fx-f fx-name-input" data-i="'+i+'" data-f="name" value="'+esc(e.name)+'" placeholder="Nom de l\'exercice">' +
+      '<div class="conv-item-menu">' +
+        '<button class="icon-btn fx-more" data-i="'+i+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="12" cy="19" r="1.3"/></svg></button>' +
+        (menuOpen === i
+          ? '<div class="conv-item-menu-pop">' +
+              '<button class="fx-act" data-act="up" data-i="'+i+'"'+(i===0?' disabled':'')+'>↑ Monter</button>' +
+              '<button class="fx-act" data-act="down" data-i="'+i+'"'+(i===total-1?' disabled':'')+'>↓ Descendre</button>' +
+              '<button class="fx-act danger" data-act="del" data-i="'+i+'">Supprimer</button>' +
+            '</div>'
+          : '') +
+      '</div>' +
+    '</div>' +
+    '<div class="ex-sets">'+sets+'</div>' +
+    '<div class="fx-secondary">' +
+      '<div class="field"><label>Muscle principal (pour le volume hebdomadaire)</label><select class="fx-f" data-i="'+i+'" data-f="muscle">' +
+        '<option value="">Aucun</option>' +
+        VOLUME_MUSCLES.map(m=>'<option value="'+esc(m)+'"'+(e.muscle===m?' selected':'')+'>'+esc(m)+'</option>').join('') +
+      '</select></div>' +
+      '<p class="small muted" style="margin:-4px 0 4px">Laisse vide les champs ci-dessous si l\'exercice ne change pas selon la phase. Renseigne-les seulement si tu veux un exercice différent (ex: haltères en hypertrophie, poulie en endurance).</p>' +
+      '<div class="grid3">' +
+        '<div class="field"><label>Nom en Hyper</label><input class="fx-f" data-i="'+i+'" data-f="hyperName" value="'+esc(e.hyperName||'')+'" placeholder="'+esc(e.name)+'"></div>' +
+        '<div class="field"><label>Nom en Force</label><input class="fx-f" data-i="'+i+'" data-f="forceName" value="'+esc(e.forceName||'')+'" placeholder="'+esc(e.name)+'"></div>' +
+        '<div class="field"><label>Nom en Endur</label><input class="fx-f" data-i="'+i+'" data-f="endurName" value="'+esc(e.endurName||'')+'" placeholder="'+esc(e.name)+'"></div>' +
+      '</div>' +
+      '<div class="field"><label>Superset (phase Endurance)</label><select class="fx-f" data-i="'+i+'" data-f="ss">' +
+        '<option value="">Aucun</option>' +
+        '<option value="down"'+(e.ss==='down'?' selected':'')+'>SS ↓ (1er du binôme)</option>' +
+        '<option value="up"'+(e.ss==='up'?' selected':'')+'>SS ↑ (2e du binôme)</option>' +
+      '</select></div>' +
+      '<div class="field"><label>Dégressif</label><select class="fx-f" data-i="'+i+'" data-f="drop">' +
+        '<option value="0">Non</option><option value="1"'+(e.drop?' selected':'')+'>Oui, dernière série</option>' +
+      '</select></div>' +
+      '<button type="button" class="fx-note-toggle" data-i="'+i+'">'+notePreview+'</button>' +
+      '<div class="field fx-note-field" data-i="'+i+'" hidden><label>Note technique</label><textarea class="fx-f" data-i="'+i+'" data-f="note">'+esc(e.note||'')+'</textarea></div>' +
+    '</div>' +
+  '</div>';
+}
+
+let fxMenuOpenI = null;
+let fxMenuOpenSi = null;
+
+function editSessionFull(si){
+  if(fxMenuOpenSi !== si) fxMenuOpenI = null;
+  fxMenuOpenSi = si;
   const sessions = getSessions();
   const s = sessions[si];
-  const isNew = ei < 0;
-  const e = isNew ? {id:uid(), name:'', hyper:'', force:'', endur:'', ss:null, drop:false, note:''} : s.ex[ei];
 
   openSheet(
-    sheetHead(isNew ? 'Nouvel exercice' : 'Modifier') +
-    '<div class="field"><label>Nom</label><input id="f-name" value="'+esc(e.name)+'"></div>' +
-    '<div class="field"><label>Muscle principal (pour le volume hebdomadaire)</label><select id="f-muscle">' +
-      '<option value="">Aucun</option>' +
-      VOLUME_MUSCLES.map(m=>'<option value="'+esc(m)+'"'+(e.muscle===m?' selected':'')+'>'+esc(m)+'</option>').join('') +
-    '</select></div>' +
-    '<div class="grid3">' +
-      '<div class="field"><label>Hyper</label><input id="f-hyper" value="'+esc(e.hyper)+'" placeholder="4x8-10"></div>' +
-      '<div class="field"><label>Force</label><input id="f-force" value="'+esc(e.force)+'" placeholder="4x5-6"></div>' +
-      '<div class="field"><label>Endur</label><input id="f-endur" value="'+esc(e.endur)+'" placeholder="3x15-20"></div>' +
-    '</div>' +
-    '<p class="small muted" style="margin:-4px 0 4px">Laisse vide les champs ci-dessous si l\'exercice ne change pas selon la phase. Renseigne-les seulement si tu veux un exercice différent (ex: haltères en hypertrophie, poulie en endurance).</p>' +
-    '<div class="grid3">' +
-      '<div class="field"><label>Nom en Hyper</label><input id="f-hyperName" value="'+esc(e.hyperName||'')+'" placeholder="'+esc(e.name)+'"></div>' +
-      '<div class="field"><label>Nom en Force</label><input id="f-forceName" value="'+esc(e.forceName||'')+'" placeholder="'+esc(e.name)+'"></div>' +
-      '<div class="field"><label>Nom en Endur</label><input id="f-endurName" value="'+esc(e.endurName||'')+'" placeholder="'+esc(e.name)+'"></div>' +
-    '</div>' +
-    '<div class="field"><label>Superset (phase Endurance)</label><select id="f-ss">' +
-      '<option value="">Aucun</option>' +
-      '<option value="down"'+(e.ss==='down'?' selected':'')+'>SS ↓ (1er du binôme)</option>' +
-      '<option value="up"'+(e.ss==='up'?' selected':'')+'>SS ↑ (2e du binôme)</option>' +
-    '</select></div>' +
-    '<div class="field"><label>Dégressif</label><select id="f-drop">' +
-      '<option value="0">Non</option><option value="1"'+(e.drop?' selected':'')+'>Oui, dernière série</option>' +
-    '</select></div>' +
-    '<div class="field"><label>Note technique</label><textarea id="f-note">'+esc(e.note||'')+'</textarea></div>' +
-    '<div class="btn-row" style="margin-top:6px">' +
-      '<button class="btn" id="f-save" style="flex:1">Enregistrer</button>' +
-      (isNew ? '' : '<button class="icon-btn danger" id="f-del" style="width:44px;height:44px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>') +
-    '</div>' +
-    (isNew ? '' :
-      '<div class="btn-row" style="margin-top:8px">' +
-      '<button class="btn ghost sm" id="f-up" style="flex:1">↑ Monter</button>' +
-      '<button class="btn ghost sm" id="f-down" style="flex:1">↓ Descendre</button></div>')
-  );
-
-  document.getElementById('f-save').addEventListener('click', ()=>{
-    const name = document.getElementById('f-name').value.trim();
-    if(!name){ alert('Le nom est obligatoire.'); return; }
-    const o = {
-      id:e.id, name,
-      muscle:document.getElementById('f-muscle').value || '',
-      hyper:document.getElementById('f-hyper').value.trim(),
-      force:document.getElementById('f-force').value.trim(),
-      endur:document.getElementById('f-endur').value.trim(),
-      hyperName:document.getElementById('f-hyperName').value.trim(),
-      forceName:document.getElementById('f-forceName').value.trim(),
-      endurName:document.getElementById('f-endurName').value.trim(),
-      ss:document.getElementById('f-ss').value || null,
-      drop:document.getElementById('f-drop').value === '1',
-      note:document.getElementById('f-note').value.trim(),
-    };
-    if(isNew) s.ex.push(o); else s.ex[ei] = o;
-    setSessions(sessions); closeSheet(); renderSessions();
-  });
-
-  if(!isNew){
-    document.getElementById('f-del').addEventListener('click', ()=>{
-      if(!confirm('Supprimer cet exercice ?')) return;
-      s.ex.splice(ei,1); setSessions(sessions); closeSheet(); renderSessions();
-    });
-    document.getElementById('f-up').addEventListener('click', ()=>{
-      if(ei === 0) return;
-      [s.ex[ei-1], s.ex[ei]] = [s.ex[ei], s.ex[ei-1]];
-      setSessions(sessions); closeSheet(); renderSessions();
-    });
-    document.getElementById('f-down').addEventListener('click', ()=>{
-      if(ei >= s.ex.length-1) return;
-      [s.ex[ei+1], s.ex[ei]] = [s.ex[ei], s.ex[ei+1]];
-      setSessions(sessions); closeSheet(); renderSessions();
-    });
-  }
-}
-
-function editSession(si){
-  const sessions = getSessions();
-  const isNew = si < 0;
-  const s = isNew ? {id:uid(), name:'', rest:{hyper:'2 min',force:'2-3 min',endur:'60-90 s'}, ex:[]} : sessions[si];
-
-  openSheet(
-    sheetHead(isNew ? 'Nouvelle séance' : 'Modifier la séance') +
-    '<div class="field"><label>Nom</label><input id="s-name" value="'+esc(s.name)+'" placeholder="Upper 1"></div>' +
+    sheetHead('Modifier la séance') +
+    '<div class="field"><label>Nom</label><input id="fs-name" value="'+esc(s.name)+'" placeholder="Upper 1"></div>' +
     '<label>Temps de repos</label><div class="grid3">' +
-      '<div class="field"><input id="s-rh" value="'+esc(s.rest.hyper)+'" placeholder="2 min"></div>' +
-      '<div class="field"><input id="s-rf" value="'+esc(s.rest.force)+'" placeholder="2-3 min"></div>' +
-      '<div class="field"><input id="s-re" value="'+esc(s.rest.endur)+'" placeholder="60-90 s"></div>' +
+      '<div class="field"><input id="fs-rh" value="'+esc(s.rest.hyper)+'" placeholder="2 min"></div>' +
+      '<div class="field"><input id="fs-rf" value="'+esc(s.rest.force)+'" placeholder="2-3 min"></div>' +
+      '<div class="field"><input id="fs-re" value="'+esc(s.rest.endur)+'" placeholder="60-90 s"></div>' +
     '</div>' +
-    '<div class="btn-row" style="margin-top:6px">' +
-      '<button class="btn" id="s-save" style="flex:1">Enregistrer</button>' +
-      (isNew ? '' : '<button class="icon-btn danger" id="s-del" style="width:44px;height:44px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>') +
-    '</div>'
+    '<h3 style="margin:18px 0 10px;font-size:.85rem;color:var(--muted)">Exercices</h3>' +
+    (s.ex.length ? s.ex.map((e,i)=> exerciseFormBlockHTML(e, i, s.ex.length, fxMenuOpenI)).join('') : '<div class="empty">Aucun exercice. Ajoute le premier ci-dessous.</div>') +
+    '<button class="btn sec sm block" id="fs-add-ex" style="margin:4px 0 16px">+ Exercice</button>' +
+    '<button class="btn danger block" id="fs-del-sess">Supprimer la séance</button>'
   );
 
-  document.getElementById('s-save').addEventListener('click', ()=>{
-    const name = document.getElementById('s-name').value.trim();
-    if(!name){ alert('Le nom est obligatoire.'); return; }
-    s.name = name;
-    s.rest = {
-      hyper:document.getElementById('s-rh').value.trim(),
-      force:document.getElementById('s-rf').value.trim(),
-      endur:document.getElementById('s-re').value.trim(),
-    };
-    if(isNew) sessions.push(s);
-    setSessions(sessions); closeSheet(); renderSessions();
+  document.getElementById('fs-name').addEventListener('change', e=>{
+    const sessions = getSessions();
+    sessions[si].name = e.target.value.trim();
+    setSessions(sessions); renderSessions();
   });
-  if(!isNew){
-    document.getElementById('s-del').addEventListener('click', ()=>{
-      if(!confirm('Supprimer la séance ' + s.name + ' et tous ses exercices ?')) return;
-      sessions.splice(si,1); setSessions(sessions); closeSheet(); renderSessions();
+  ['fs-rh','fs-rf','fs-re'].forEach((id, idx)=>{
+    const key = ['hyper','force','endur'][idx];
+    document.getElementById(id).addEventListener('change', e=>{
+      const sessions = getSessions();
+      sessions[si].rest[key] = e.target.value.trim();
+      setSessions(sessions); renderSessions();
     });
-  }
+  });
+  document.querySelectorAll('#sheet .fx-f').forEach(inp=>{
+    inp.addEventListener('change', ()=>{
+      const sessions = getSessions();
+      const ex = sessions[si].ex[+inp.dataset.i];
+      const f = inp.dataset.f;
+      if(f === 'drop') ex.drop = inp.value === '1';
+      else if(f === 'ss') ex.ss = inp.value || null;
+      else if(f === 'muscle') ex.muscle = inp.value;
+      else ex[f] = inp.value.trim();
+      setSessions(sessions); renderSessions();
+    });
+  });
+  document.querySelectorAll('#sheet .fx-note-toggle').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const field = document.querySelector('#sheet .fx-note-field[data-i="'+b.dataset.i+'"]');
+      field.hidden = !field.hidden;
+      b.hidden = !field.hidden;
+    });
+  });
+  document.querySelectorAll('#sheet .fx-more').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const i = +b.dataset.i;
+      fxMenuOpenI = fxMenuOpenI === i ? null : i;
+      editSessionFull(si);
+    });
+  });
+  document.querySelectorAll('#sheet .fx-act').forEach(b=>{
+    b.addEventListener('click', async ()=>{
+      if(b.disabled) return;
+      const i = +b.dataset.i, act = b.dataset.act;
+      fxMenuOpenI = null;
+      if(act === 'del'){
+        if(!await appConfirm('Supprimer cet exercice ?')) return;
+        const sessions = getSessions(); const ex = sessions[si].ex;
+        ex.splice(i,1);
+        setSessions(sessions); renderSessions(); editSessionFull(si);
+        return;
+      }
+      const sessions = getSessions(); const ex = sessions[si].ex;
+      if(act === 'up'){ if(i===0) return; [ex[i-1], ex[i]] = [ex[i], ex[i-1]]; }
+      else if(act === 'down'){ if(i>=ex.length-1) return; [ex[i+1], ex[i]] = [ex[i], ex[i+1]]; }
+      setSessions(sessions); renderSessions(); editSessionFull(si);
+    });
+  });
+  document.getElementById('fs-add-ex').addEventListener('click', ()=>{
+    const sessions = getSessions();
+    sessions[si].ex.push({id:uid(), name:'', muscle:'', hyper:'', force:'', endur:'', hyperName:'', forceName:'', endurName:'', ss:null, drop:false, note:''});
+    setSessions(sessions); renderSessions(); editSessionFull(si);
+  });
+  document.getElementById('fs-del-sess').addEventListener('click', async ()=>{
+    const sessions = getSessions();
+    if(!await appConfirm('Supprimer la séance ' + sessions[si].name + ' et tous ses exercices ?')) return;
+    sessions.splice(si,1); setSessions(sessions); closeSheet();
+    openSessionIdx = null; renderSessions();
+  });
 }
 
-document.getElementById('add-session').addEventListener('click', ()=> editSession(-1));
-document.getElementById('reset-prog').addEventListener('click', ()=>{
-  if(!confirm('Restaurer le programme d\'origine ? Toutes tes modifications de séances seront perdues.')) return;
+document.getElementById('add-session').addEventListener('click', ()=>{
+  const sessions = getSessions();
+  sessions.push({id:uid(), name:'Nouvelle séance', rest:{hyper:'2 min',force:'2-3 min',endur:'60-90 s'}, ex:[]});
+  setSessions(sessions);
+  editSessionFull(sessions.length - 1);
+});
+document.getElementById('reset-prog').addEventListener('click', async ()=>{
+  if(!await appConfirm('Restaurer le programme d\'origine ? Toutes tes modifications de séances seront perdues.')) return;
   setSessions(JSON.parse(JSON.stringify(DEFAULT_SESSIONS)));
   renderSessions();
 });
@@ -1605,19 +1706,19 @@ function editStep(key){
     (key ? '<button class="icon-btn danger" id="st-del" style="width:44px;height:44px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>' : '') +
     '</div>'
   );
-  document.getElementById('st-save').addEventListener('click', ()=>{
+  document.getElementById('st-save').addEventListener('click', async ()=>{
     const label = document.getElementById('st-label').value.trim();
     const kcal = parseFloat(document.getElementById('st-kcal').value);
     const protein = parseFloat(document.getElementById('st-prot').value);
-    if(!label || !kcal || !protein){ alert('Nom, kcal et protéines sont obligatoires.'); return; }
+    if(!label || !kcal || !protein){ await appAlert('Nom, kcal et protéines sont obligatoires.'); return; }
     const c = document.getElementById('st-carb').value, f = document.getElementById('st-fat').value;
     const k = key || uid();
     d[m].steps[k] = {label, kcal, protein, carbs:c?parseFloat(c):null, fat:f?parseFloat(f):null, note:document.getElementById('st-note').value.trim()};
     setModes(d); setSelStep(m, k); closeSheet(); renderMacros(); updateSub();
   });
   if(key){
-    document.getElementById('st-del').addEventListener('click', ()=>{
-      if(!confirm('Supprimer cette étape ?')) return;
+    document.getElementById('st-del').addEventListener('click', async ()=>{
+      if(!await appConfirm('Supprimer cette étape ?')) return;
       delete d[m].steps[key]; setModes(d);
       const o = selSteps(); delete o[m]; save(K.steps, o);
       closeSheet(); renderMacros(); updateSub();
@@ -2073,8 +2174,8 @@ function recipeDetailHTML(r){
 function bindRecipeDetail(r){
   document.getElementById('rec-back').addEventListener('click', ()=>{ recipeMode = 'list'; renderRecettes(); });
   document.getElementById('rec-edit').addEventListener('click', ()=> openRecipeEdit(r.id));
-  document.getElementById('rec-del').addEventListener('click', ()=>{
-    if(!confirm('Supprimer cette recette ?')) return;
+  document.getElementById('rec-del').addEventListener('click', async ()=>{
+    if(!await appConfirm('Supprimer cette recette ?')) return;
     setRecipes(getRecipes().filter(x=>x.id !== r.id));
     recipeMode = 'list'; renderRecettes();
   });
@@ -2329,9 +2430,9 @@ function bindRecipeEdit(){
     }
   });
 
-  document.getElementById('re-save').addEventListener('click', ()=>{
+  document.getElementById('re-save').addEventListener('click', async ()=>{
     const name = document.getElementById('re-name').value.trim();
-    if(!name){ alert('Le nom est obligatoire.'); return; }
+    if(!name){ await appAlert('Le nom est obligatoire.'); return; }
     recipeDraft.name = name;
     recipeDraft.moment = document.getElementById('re-moment').value;
     recipeDraft.prepMinutes = parseFloat(document.getElementById('re-time').value) || '';
@@ -2490,8 +2591,8 @@ function renderWeights(){
         '<td class="num"><button class="icon-btn danger w-del" data-id="'+e.id+'" style="width:28px;height:28px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></td></tr>';
     }).join('') + '</tbody></table></div>';
   box.querySelectorAll('.w-del').forEach(b=>{
-    b.addEventListener('click', ()=>{
-      if(!confirm('Supprimer cette mesure ?')) return;
+    b.addEventListener('click', async ()=>{
+      if(!await appConfirm('Supprimer cette mesure ?')) return;
       setWeights(weights().filter(x=>x.id !== b.dataset.id));
       renderWeights();
     });
@@ -2638,21 +2739,21 @@ function renderConvList(){
     });
   });
   list.querySelectorAll('[data-act="rename"]').forEach(b=>{
-    b.addEventListener('click', ev=>{
+    b.addEventListener('click', async ev=>{
       ev.stopPropagation();
       const conv = convs().find(x=>x.id === b.dataset.id);
-      const name = prompt('Nouveau nom de la conversation :', conv.title);
+      const name = await appPrompt('Nouveau nom de la conversation :', conv.title);
       if(name && name.trim()){ conv.title = name.trim().slice(0,60); saveConv(conv); }
       convMenuOpenId = null;
       renderConvList();
     });
   });
   list.querySelectorAll('[data-act="delete"]').forEach(b=>{
-    b.addEventListener('click', ev=>{
+    b.addEventListener('click', async ev=>{
       ev.stopPropagation();
       const all = convs();
       if(all.length <= 1 && !all[0].msgs.length){ convMenuOpenId = null; renderConvList(); return; }
-      if(!confirm('Supprimer cette conversation ?')){ convMenuOpenId = null; renderConvList(); return; }
+      if(!await appConfirm('Supprimer cette conversation ?')){ convMenuOpenId = null; renderConvList(); return; }
       const rest = all.filter(x=>x.id !== b.dataset.id);
       setConvs(rest);
       if(b.dataset.id === curConvId()){
@@ -2798,8 +2899,19 @@ function liveContext(){
   if(sessions.length){
     L.push('Détail complet du programme de séances (JSON) :');
     L.push(JSON.stringify(sessions));
-    L.push('Légende JSON séances : chaque séance a un nom, une priorité (groupes musculaires ciblés), un temps de repos par phase (hyper/force/endur), et une liste d\'exercices ex[] ; chaque exercice a un nom, un muscle principal (muscle), des séries/reps propres à chaque phase (champs hyper/force/endur), d\'éventuels noms différents par phase si l\'exercice change (hyperName/forceName/endurName, sinon on garde "name"), un éventuel superset (ss: "down"/"up"), un dropset (drop), et une note technique (note).');
+    L.push('Légende JSON séances : chaque séance a un nom, un temps de repos par phase (rest.hyper/force/endur), et une liste d\'exercices ex[] ; chaque exercice a un nom, un muscle principal (muscle), des séries/reps propres à chaque phase (champs hyper/force/endur), d\'éventuels noms différents par phase si l\'exercice change (hyperName/forceName/endurName, sinon on garde "name"), un éventuel superset (ss: "down"/"up"), un dropset (drop), et une note technique (note).');
   }
+  const vol = getVolume();
+  if(vol.length){
+    L.push('Volume hebdomadaire actuel par groupe musculaire (séries s, avec repères MEV et fourchette MAV lo-hi) : ' + JSON.stringify(vol));
+  }
+  const profile = getProfile();
+  L.push('Profil renseigné dans l\'app (écran Profil) : ' + JSON.stringify(profile));
+  const recipes = getRecipes();
+  if(recipes.length){
+    L.push('Recettes enregistrées dans l\'app (' + recipes.length + ') : ' + JSON.stringify(recipes.map(r=>({name:r.name, moment:r.moment, portions:r.portions, ingredients:r.ingredients}))));
+  }
+  L.push('Structure de l\'application : 4 onglets en bas — Programme (Cycle des phases / Séances / Volume hebdomadaire), Nutrition (Macros par mode et palier / Recettes / Suivi de poids), Coach IA (toi, avec historique de conversations), Profil (infos perso, état actuel, médiathèque photos/vidéos par albums). Les réglages (thème clair/sombre, sauvegarde et restauration des données, clé API) sont dans l\'icône d\'engrenage en haut à droite de l\'onglet Profil.');
   return 'CONTEXTE ACTUEL, DONNÉES RÉELLES DE SON APP\n' + L.join('\n');
 }
 
@@ -3122,8 +3234,8 @@ function openSettings(){
     closeSheet();
   });
   const cb = document.getElementById('k-clear');
-  if(cb) cb.addEventListener('click', ()=>{
-    if(!confirm('Effacer la clé enregistrée ?')) return;
+  if(cb) cb.addEventListener('click', async ()=>{
+    if(!await appConfirm('Effacer la clé enregistrée ?')) return;
     setApiKey(''); closeSheet();
   });
 
@@ -3148,14 +3260,14 @@ function openSettings(){
     const f = e.target.files[0];
     if(!f) return;
     const r = new FileReader();
-    r.onload = ev=>{
+    r.onload = async ev=>{
       try{
         const j = JSON.parse(ev.target.result);
         if(!j.data) throw new Error('Fichier invalide');
-        if(!confirm('Restaurer cette sauvegarde ? Les données actuelles de l\'app seront remplacées.')) return;
+        if(!await appConfirm('Restaurer cette sauvegarde ? Les données actuelles de l\'app seront remplacées.')) return;
         Object.entries(j.data).forEach(([k,v])=> localStorage.setItem(k, v));
         location.reload();
-      }catch(_){ alert('Fichier de sauvegarde illisible.'); }
+      }catch(_){ await appAlert('Fichier de sauvegarde illisible.'); }
     };
     r.readAsText(f);
     e.target.value = '';
@@ -3219,7 +3331,6 @@ let mediaPrevTab = null;
 
 function openMediaLibrary(){
   mediaPrevTab = document.querySelector('.tabbar button.active');
-  document.querySelectorAll('.tabbar button').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
   document.getElementById('screen-media').classList.add('active');
   document.getElementById('page-title').textContent = 'Médiathèque';
@@ -3230,7 +3341,9 @@ function openMediaLibrary(){
 function closeMediaLibrary(){
   document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
   const t = mediaPrevTab || document.querySelector('.tabbar button[data-tab="profil"]');
+  document.querySelectorAll('.tabbar button').forEach(x=>x.classList.remove('active'));
   t.classList.add('active');
+  moveTabbarPill();
   document.getElementById('screen-' + t.dataset.tab).classList.add('active');
   document.getElementById('page-title').textContent = TITLES[t.dataset.tab];
   document.getElementById('open-settings').hidden = (t.dataset.tab !== 'profil');
@@ -3256,7 +3369,7 @@ async function renderMediaView(){
           '</div>').join('')
         : '<div class="card"><div class="empty">Aucun album. Crée-en un pour commencer à ranger tes photos et vidéos.</div></div>');
     document.getElementById('media-new-album').addEventListener('click', async ()=>{
-      const name = prompt('Nom de l\'album :');
+      const name = await appPrompt('Nom de l\'album :');
       if(!name || !name.trim()) return;
       await idbPut('albums', {id:uid(), name:name.trim(), created:Date.now()});
       renderMediaView();
@@ -3296,7 +3409,7 @@ async function renderMediaView(){
       : '<div class="empty">Aucun élément dans cet album pour l\'instant.</div>');
 
   document.getElementById('media-del-album').addEventListener('click', async ()=>{
-    if(!confirm('Supprimer l\'album "' + album.name + '" et tout son contenu ?')) return;
+    if(!await appConfirm('Supprimer l\'album "' + album.name + '" et tout son contenu ?')) return;
     for(const it of items) await idbDelete('items', it.id);
     await idbDelete('albums', album.id);
     mediaOpenAlbumId = null;
@@ -3314,28 +3427,70 @@ async function renderMediaView(){
   document.querySelectorAll('.media-del').forEach(b=>{
     b.addEventListener('click', async ev=>{
       ev.stopPropagation();
-      if(!confirm('Supprimer cet élément ?')) return;
+      if(!await appConfirm('Supprimer cet élément ?')) return;
       await idbDelete('items', b.dataset.id);
       renderMediaView();
     });
   });
   document.querySelectorAll('.media-thumb').forEach(t=>{
-    t.addEventListener('click', ()=> openMediaViewer(items.find(it=>it.id === t.dataset.id)));
+    t.addEventListener('click', ()=> openMediaViewer(items, items.findIndex(it=>it.id === t.dataset.id)));
   });
 }
 
-function openMediaViewer(item){
-  if(!item) return;
+function openMediaViewer(items, idx){
+  if(!items || !items[idx]) return;
   const v = document.createElement('div');
   v.className = 'media-viewer';
-  const url = URL.createObjectURL(item.blob);
-  v.innerHTML =
-    '<button class="icon-btn" id="media-viewer-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
-    (item.type === 'image' ? '<img src="'+url+'">' : '<video src="'+url+'" controls autoplay></video>');
   document.body.appendChild(v);
-  const close = ()=>{ v.remove(); URL.revokeObjectURL(url); };
+  let curUrl = null;
+
+  function renderSlide(){
+    if(curUrl) URL.revokeObjectURL(curUrl);
+    const item = items[idx];
+    curUrl = URL.createObjectURL(item.blob);
+    v.innerHTML =
+      '<button class="icon-btn" id="media-viewer-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
+      (items.length > 1
+        ? '<button class="icon-btn media-viewer-nav" id="media-viewer-prev" style="left:16px"'+(idx===0?' disabled':'')+'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>' +
+          '<button class="icon-btn media-viewer-nav" id="media-viewer-next" style="right:16px"'+(idx===items.length-1?' disabled':'')+'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>'
+        : '') +
+      (item.type === 'image' ? '<img src="'+curUrl+'">' : '<video src="'+curUrl+'" controls autoplay></video>');
+    document.getElementById('media-viewer-close').addEventListener('click', close);
+    const prevBtn = document.getElementById('media-viewer-prev');
+    const nextBtn = document.getElementById('media-viewer-next');
+    if(prevBtn) prevBtn.addEventListener('click', ()=> go(-1));
+    if(nextBtn) nextBtn.addEventListener('click', ()=> go(1));
+  }
+  function go(dir){
+    const next = idx + dir;
+    if(next < 0 || next >= items.length) return;
+    idx = next;
+    renderSlide();
+  }
+  function close(){
+    v.remove();
+    if(curUrl) URL.revokeObjectURL(curUrl);
+    document.removeEventListener('keydown', onKey);
+  }
+  function onKey(e){
+    if(e.key === 'Escape') close();
+    else if(e.key === 'ArrowLeft') go(-1);
+    else if(e.key === 'ArrowRight') go(1);
+  }
+  document.addEventListener('keydown', onKey);
   v.addEventListener('click', e=>{ if(e.target === v) close(); });
-  document.getElementById('media-viewer-close').addEventListener('click', close);
+
+  let touchX = null;
+  v.addEventListener('touchstart', e=>{ touchX = e.touches[0].clientX; }, {passive:true});
+  v.addEventListener('touchend', e=>{
+    if(touchX === null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    touchX = null;
+    if(Math.abs(dx) < 50) return;
+    go(dx > 0 ? -1 : 1);
+  }, {passive:true});
+
+  renderSlide();
 }
 
 /* ==========================================================
@@ -3353,6 +3508,8 @@ renderProfile();
 renderState();
 renderThemeSelector();
 updateSub();
+moveTabbarPill();
+document.fonts && document.fonts.ready.then(moveTabbarPill);
 </script>
 </body>
 </html>
