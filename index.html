@@ -446,7 +446,6 @@
     display:flex;align-items:center;gap:10px;margin-bottom:4px;
   }
   .sess-title{font-family:var(--display);font-weight:700;font-size:1rem;flex:1;letter-spacing:-.01em;}
-  .sess-prio{font-size:.73rem;color:var(--muted);line-height:1.4;margin-bottom:12px;}
   .sess-preview{
     font-size:.78rem;color:var(--muted);line-height:1.5;margin-bottom:2px;
     display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
@@ -785,30 +784,9 @@
       <div id="state-view"></div>
     </div>
     <div class="card">
-      <div class="card-head"><h2>Apparence</h2></div>
-      <div class="chips" id="theme-sel">
-        <div class="chip" data-theme="dark">🌙 Sombre</div>
-        <div class="chip" data-theme="light">☀️ Clair</div>
-      </div>
-    </div>
-    <div class="card">
       <div class="card-head"><h2>Médiathèque</h2></div>
       <p class="small muted" style="margin-top:-4px">Range tes photos et vidéos par albums, séparément de ta pellicule.</p>
       <button class="btn block" id="open-media">Ouvrir la médiathèque</button>
-    </div>
-    <div class="card">
-      <div class="card-head">
-        <h2>Mes données</h2>
-        <button class="help-btn" data-help="h-data">?</button>
-      </div>
-      <div class="help-text" id="h-data" hidden>
-        Tout est enregistré uniquement sur cet appareil. Si tu changes de téléphone ou que tu effaces les données de Safari, tout est perdu. La sauvegarde crée un fichier que tu peux restaurer ensuite.
-      </div>
-      <div class="btn-row">
-        <button class="btn sec sm" id="export-data">Sauvegarder</button>
-        <button class="btn sec sm" id="import-data">Restaurer</button>
-        <input type="file" id="import-file" accept="application/json" hidden>
-      </div>
     </div>
   </section>
 
@@ -859,10 +837,9 @@ const PH_SHORT = {hyper:'Hyper', force:'Force', endur:'Endur'};
 const DEFAULT_SESSIONS = [
   {
     id:'upper1', name:'Upper 1',
-    priority:'Pectoraux · Dos · Épaules · Triceps · Biceps',
     rest:{hyper:'2 min', force:'2-3 min', endur:'60-90 s'},
     ex:[
-      {id:'u1e1', name:'Développé incliné Smith + haltères', muscle:'Pectoraux', hyper:'5x8-10', force:'5x5-6', endur:'4x15-20', ss:null, drop:false,
+      {id:'u1e1', name:'Développé incliné Smith + haltères', hyperName:'Développé incliné Smith', forceName:'Développé incliné Smith', endurName:'Développé incliné haltères', muscle:'Pectoraux', hyper:'5x8-10', force:'5x5-6', endur:'4x15-20', ss:null, drop:false,
        note:"Commencer par 2-3 séries haltères en charge légère, finir sur Smith. Basculer complètement aux haltères quand le mouvement est stable et contrôlé."},
       {id:'u1e2', name:'Écarté poulie haute (bas du pec)', muscle:'Pectoraux', hyper:'3x12', force:'3x8-10', endur:'3x15-20', ss:null, drop:false, note:''},
       {id:'u1e3', name:'Tractions (poids du corps)', muscle:'Dos', hyper:'3x8-12', force:'4x5-6', endur:'3x12-15', ss:'down', drop:false, note:''},
@@ -875,7 +852,6 @@ const DEFAULT_SESSIONS = [
   },
   {
     id:'upper2', name:'Upper 2',
-    priority:'Pectoraux · Épaules · Dos · Triceps · Biceps',
     rest:{hyper:'2 min', force:'2-3 min', endur:'60-90 s'},
     ex:[
       {id:'u2e1', name:'Développé couché machine', muscle:'Pectoraux', hyper:'5x8-10', force:'5x5-6', endur:'3x12-15', ss:'down', drop:false, note:''},
@@ -891,7 +867,6 @@ const DEFAULT_SESSIONS = [
   },
   {
     id:'lower1', name:'Lower 1',
-    priority:'Fessiers · Ischio-jambiers · Quadriceps · Mollets · Abdos',
     rest:{hyper:'2 min', force:'2-3 min', endur:'60-90 s'},
     ex:[
       {id:'l1e1', name:'Hip thrust à la machine', muscle:'Fessiers', hyper:'5x10-12', force:'5x6-8', endur:'4x15-20', ss:null, drop:false,
@@ -908,7 +883,6 @@ const DEFAULT_SESSIONS = [
   },
   {
     id:'lower2', name:'Lower 2',
-    priority:'Fessiers · Ischio-jambiers · Quadriceps · Mollets · Abdos',
     rest:{hyper:'2 min', force:'2-3 min', endur:'60-90 s'},
     ex:[
       {id:'l2e1', name:'Hip thrust à la machine', muscle:'Fessiers', hyper:'4x10-12', force:'4x6-8', endur:'3x15', ss:null, drop:false,
@@ -1276,7 +1250,6 @@ function sessionCardHTML(s, si){
   const names = s.ex.map(e=>e.name).filter(Boolean).join(', ');
   return '<div class="card sess-card" data-s="'+si+'">' +
     '<div class="sess-head"><span class="sess-title">'+esc(s.name)+'</span></div>' +
-    (s.priority ? '<div class="sess-prio">'+esc(s.priority)+'</div>' : '') +
     (names ? '<div class="sess-preview">'+esc(names)+'</div>' : '') +
     '<button class="btn block sm sess-open" data-s="'+si+'" style="margin-top:10px">Accéder à la séance</button>' +
     '</div>';
@@ -1293,7 +1266,7 @@ function sessionDetailHTML(s, si, cur){
     ).join('');
     return '<div class="ex">' +
       '<div class="ex-top"><span class="ex-idx">'+(i+1)+'</span><span class="ex-name">'+esc(exNameForPhase(e, cur))+'</span>' +
-      '<button class="icon-btn ex-edit" data-s="'+si+'" data-e="'+i+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></div>' +
+      '<button class="icon-btn ex-edit" data-s="'+si+'" data-e="'+i+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="12" cy="19" r="1.3"/></svg></button></div>' +
       '<div class="ex-sets">'+sets+'</div>' +
       (tags.length ? '<div class="ex-tags">'+tags.join('')+'</div>' : '') +
       (e.note ? '<div class="ex-note">'+esc(e.note)+'</div>' : '') +
@@ -1306,7 +1279,6 @@ function sessionDetailHTML(s, si, cur){
     '<div class="card">' +
     '<div class="sess-head"><span class="sess-title">'+esc(s.name)+'</span>' +
     '<button class="icon-btn sess-more" data-s="'+si+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="12" cy="19" r="1.3"/></svg></button></div>' +
-    '<div class="sess-prio">'+esc(s.priority)+'</div>' +
     '<div class="sess-rest">'+rest+'</div>' +
     exs +
     '<button class="btn sec sm block ex-add" data-s="'+si+'" style="margin-top:10px">+ Exercice</button>' +
@@ -1317,7 +1289,7 @@ function openSessionActions(si){
   openSheet(
     sheetHead('Actions de la séance') +
     '<div class="btn-row" style="flex-direction:column;gap:8px">' +
-      '<button class="btn sec block" id="sa-edit">Modifier nom, priorités, repos</button>' +
+      '<button class="btn sec block" id="sa-edit">Modifier nom, repos</button>' +
       '<button class="btn sec block" id="sa-reorder">Réorganiser les exercices</button>' +
       '<button class="btn danger block" id="sa-del">Supprimer la séance</button>' +
     '</div>'
@@ -1482,12 +1454,11 @@ function editExercise(si, ei){
 function editSession(si){
   const sessions = getSessions();
   const isNew = si < 0;
-  const s = isNew ? {id:uid(), name:'', priority:'', rest:{hyper:'2 min',force:'2-3 min',endur:'60-90 s'}, ex:[]} : sessions[si];
+  const s = isNew ? {id:uid(), name:'', rest:{hyper:'2 min',force:'2-3 min',endur:'60-90 s'}, ex:[]} : sessions[si];
 
   openSheet(
     sheetHead(isNew ? 'Nouvelle séance' : 'Modifier la séance') +
     '<div class="field"><label>Nom</label><input id="s-name" value="'+esc(s.name)+'" placeholder="Upper 1"></div>' +
-    '<div class="field"><label>Priorités</label><input id="s-prio" value="'+esc(s.priority)+'" placeholder="Pectoraux · Dos · Épaules"></div>' +
     '<label>Temps de repos</label><div class="grid3">' +
       '<div class="field"><input id="s-rh" value="'+esc(s.rest.hyper)+'" placeholder="2 min"></div>' +
       '<div class="field"><input id="s-rf" value="'+esc(s.rest.force)+'" placeholder="2-3 min"></div>' +
@@ -1503,7 +1474,6 @@ function editSession(si){
     const name = document.getElementById('s-name').value.trim();
     if(!name){ alert('Le nom est obligatoire.'); return; }
     s.name = name;
-    s.priority = document.getElementById('s-prio').value.trim();
     s.rest = {
       hyper:document.getElementById('s-rh').value.trim(),
       force:document.getElementById('s-rf').value.trim(),
@@ -2739,7 +2709,7 @@ const APP_CHANGE_TOOL = {
         description:
           'Forme exacte attendue selon la valeur de "kind" :\n' +
           '- add_recipe: {name, moment: "petitDej"|"midi"|"soir"|"shaker", prepMinutes, portions, ingredients:[{name,grams,kcal100,protein100,carbs100,fat100}], steps:[string]}\n' +
-          '- add_session: {name, priority, rest:{hyper,force,endur}, ex:[{name,muscle,hyper,force,endur,hyperName,forceName,endurName,ss:"down"|"up"|null,drop:bool,note}]}\n' +
+          '- add_session: {name, rest:{hyper,force,endur}, ex:[{name,muscle,hyper,force,endur,hyperName,forceName,endurName,ss:"down"|"up"|null,drop:bool,note}]}\n' +
           '- add_exercise: {sessionName, exercise:{name,muscle,hyper,force,endur,hyperName,forceName,endurName,ss,drop,note}} (muscle doit être une valeur parmi : ' + VOLUME_MUSCLES.join(', ') + '. hyperName/forceName/endurName ne servent que si le nom de l\'exercice change selon la phase, sinon laisse-les vides.)\n' +
           '- add_or_update_step: {mode:"seche"|"reverse"|"masse", label, kcal, protein, carbs, fat, note}\n' +
           '- set_meal: {mode:"seche"|"reverse"|"masse", stepLabel, meal:"petitDej"|"shaker", ingredients:[{name,grams,kcal100,protein100,carbs100,fat100}]}',
@@ -2764,7 +2734,7 @@ function applyAppChange(kind, payload){
   } else if(kind === 'add_session'){
     const s = getSessions();
     s.push({
-      id: uid(), name: payload.name || 'Nouvelle séance', priority: payload.priority || '',
+      id: uid(), name: payload.name || 'Nouvelle séance',
       rest: {hyper:payload.rest?.hyper||'', force:payload.rest?.force||'', endur:payload.rest?.endur||''},
       ex: (payload.ex||[]).map(e=>({name:e.name||'', muscle:e.muscle||'', hyper:e.hyper||'', force:e.force||'', endur:e.endur||'', hyperName:e.hyperName||'', forceName:e.forceName||'', endurName:e.endurName||'', ss:e.ss||null, drop:!!e.drop, note:e.note||''})),
     });
@@ -3111,6 +3081,24 @@ function openSettings(){
   const key = getApiKey();
   openSheet(
     sheetHead('Réglages') +
+    '<div class="card-head"><h2>Apparence</h2></div>' +
+    '<div class="chips" id="theme-sel">' +
+      '<div class="chip" data-theme="dark">🌙 Sombre</div>' +
+      '<div class="chip" data-theme="light">☀️ Clair</div>' +
+    '</div>' +
+    '<div class="card-head" style="margin-top:18px">' +
+      '<h2>Mes données</h2>' +
+      '<button class="help-btn" data-help="h-data">?</button>' +
+    '</div>' +
+    '<div class="help-text" id="h-data" hidden>' +
+      'Tout est enregistré uniquement sur cet appareil. Si tu changes de téléphone ou que tu effaces les données de Safari, tout est perdu. La sauvegarde crée un fichier que tu peux restaurer ensuite.' +
+    '</div>' +
+    '<div class="btn-row">' +
+      '<button class="btn sec sm" id="export-data">Sauvegarder</button>' +
+      '<button class="btn sec sm" id="import-data">Restaurer</button>' +
+      '<input type="file" id="import-file" accept="application/json" hidden>' +
+    '</div>' +
+    '<div class="card-head" style="margin-top:18px"><h2>Clé API</h2></div>' +
     '<div class="field"><label>Clé API Anthropic</label>' +
     '<input type="password" id="k-input" placeholder="'+(key ? 'Clé enregistrée, se termine par ' + esc(key.slice(-4)) : 'sk-ant-...')+'"></div>' +
     '<div class="field"><label>Modèle</label><select id="k-model">' +
@@ -3138,42 +3126,43 @@ function openSettings(){
     if(!confirm('Effacer la clé enregistrée ?')) return;
     setApiKey(''); closeSheet();
   });
+
+  renderThemeSelector();
+
+  document.getElementById('export-data').addEventListener('click', ()=>{
+    const data = {};
+    Object.values(K).forEach(k=>{
+      if(k === K.key) return; // la clé API ne sort jamais du téléphone
+      const v = localStorage.getItem(k);
+      if(v !== null) data[k] = v;
+    });
+    const blob = new Blob([JSON.stringify({v:1, date:todayISO(), data}, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'sauvegarde-musculation-' + todayISO() + '.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 15000);
+  });
+  document.getElementById('import-data').addEventListener('click', ()=> document.getElementById('import-file').click());
+  document.getElementById('import-file').addEventListener('change', e=>{
+    const f = e.target.files[0];
+    if(!f) return;
+    const r = new FileReader();
+    r.onload = ev=>{
+      try{
+        const j = JSON.parse(ev.target.result);
+        if(!j.data) throw new Error('Fichier invalide');
+        if(!confirm('Restaurer cette sauvegarde ? Les données actuelles de l\'app seront remplacées.')) return;
+        Object.entries(j.data).forEach(([k,v])=> localStorage.setItem(k, v));
+        location.reload();
+      }catch(_){ alert('Fichier de sauvegarde illisible.'); }
+    };
+    r.readAsText(f);
+    e.target.value = '';
+  });
 }
 window.openSettings = openSettings;
 document.getElementById('open-settings').addEventListener('click', openSettings);
-
-/* ---------- Export / Import ---------- */
-document.getElementById('export-data').addEventListener('click', ()=>{
-  const data = {};
-  Object.values(K).forEach(k=>{
-    if(k === K.key) return; // la clé API ne sort jamais du téléphone
-    const v = localStorage.getItem(k);
-    if(v !== null) data[k] = v;
-  });
-  const blob = new Blob([JSON.stringify({v:1, date:todayISO(), data}, null, 2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'sauvegarde-musculation-' + todayISO() + '.json';
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  setTimeout(()=>URL.revokeObjectURL(url), 15000);
-});
-document.getElementById('import-data').addEventListener('click', ()=> document.getElementById('import-file').click());
-document.getElementById('import-file').addEventListener('change', e=>{
-  const f = e.target.files[0];
-  if(!f) return;
-  const r = new FileReader();
-  r.onload = ev=>{
-    try{
-      const j = JSON.parse(ev.target.result);
-      if(!j.data) throw new Error('Fichier invalide');
-      if(!confirm('Restaurer cette sauvegarde ? Les données actuelles de l\'app seront remplacées.')) return;
-      Object.entries(j.data).forEach(([k,v])=> localStorage.setItem(k, v));
-      location.reload();
-    }catch(_){ alert('Fichier de sauvegarde illisible.'); }
-  };
-  r.readAsText(f);
-  e.target.value = '';
-});
 
 /* ==========================================================
    16. MÉDIATHÈQUE (IndexedDB)
